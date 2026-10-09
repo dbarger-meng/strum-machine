@@ -1,0 +1,11 @@
+{
+  "name": "strum-machine",
+  "version": "0.1.0",
+  "description": "Build bluegrass strum patterns, load tunes from tab, ABC, MusicXML or MIDI, and play along.",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "license": "MIT"
+}

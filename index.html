@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strum Studio</title>
+  <meta name="description" content="Build a bluegrass strum pattern, load a tune from tab or sheet music files, and play along.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="masthead">
+  <h1>Strum Studio</h1>
+  <p>Build a bluegrass strum pattern, load a tune, and play along.</p>
+</header>
+
+<main>
+  <section class="transport" aria-label="Playback">
+    <button id="play" class="play" type="button" aria-pressed="false">Play</button>
+    <label class="field tempo">
+      <span>Tempo</span>
+      <span class="tempo-inputs">
+        <input id="tempo" type="range" min="50" max="220" value="110" aria-label="Tempo slider">
+        <input id="tempoNum" type="number" min="50" max="220" value="110" aria-label="Tempo in beats per minute">
+        <span class="unit">bpm</span>
+      </span>
+    </label>
+    <label class="field">
+      <span>Key shift</span>
+      <select id="transpose"></select>
+    </label>
+    <label class="field">
+      <span>Time</span>
+      <select id="timeSig">
+        <option value="4/4">4/4</option>
+        <option value="3/4">3/4 waltz</option>
+        <option value="2/4">2/4</option>
+        <option value="6/8">6/8</option>
+      </select>
+    </label>
+    <div class="checks">
+      <label><input id="loop" type="checkbox" checked> Loop</label>
+      <label><input id="countIn" type="checkbox"> Count-in</label>
+      <label><input id="metro" type="checkbox"> Click</label>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-pattern">
+    <div class="card-head">
+      <h2 id="h-pattern">Strum pattern</h2>
+      <div class="row">
+        <select id="preset" aria-label="Pattern preset"></select>
+        <select id="sub" aria-label="Grid resolution">
+          <option value="2">Eighth notes</option>
+          <option value="4">Sixteenth notes</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="palette" class="palette" role="radiogroup" aria-label="Stroke to paint"></div>
+    <div id="grid" class="grid" role="group" aria-label="One bar of the pattern"></div>
+    <p id="toolHelp" class="hint"></p>
+
+    <div class="feel">
+      <label class="field">
+        <span>Bass runs</span>
+        <select id="bassRuns">
+          <option value="off">Off</option>
+          <option value="some" selected>Every other chord change</option>
+          <option value="all">Every chord change</option>
+        </select>
+      </label>
+      <label class="field slider">
+        <span>Swing</span>
+        <input id="swing" type="range" min="0" max="100" value="0">
+      </label>
+      <label class="field slider">
+        <span>Looseness</span>
+        <input id="human" type="range" min="0" max="100" value="25">
+      </label>
+    </div>
+
+    <div class="row actions">
+      <button id="savePattern" type="button" class="quiet">Save pattern</button>
+      <select id="saved" aria-label="Saved patterns"><option value="">Saved patterns</option></select>
+      <button id="deleteSaved" type="button" class="quiet">Delete saved</button>
+      <button id="clearPattern" type="button" class="quiet">Clear grid</button>
+      <button id="share" type="button" class="quiet">Copy share link</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-chart">
+    <div class="card-head">
+      <h2 id="h-chart">Chord chart</h2>
+      <p id="keyInfo" class="hint"></p>
+    </div>
+    <textarea id="chart" rows="4" spellcheck="false" aria-label="Chord chart, bars separated by vertical bars"></textarea>
+    <p id="chartWarn" class="warn" role="status"></p>
+    <div id="chartView" class="chart-view" aria-label="Chart preview"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-import">
+    <div class="card-head">
+      <h2 id="h-import">Load a tune</h2>
+    </div>
+    <div id="drop" class="drop" tabindex="0">
+      <p><strong>Drop a file here</strong> or <label class="file-btn">choose a file<input id="file" type="file" accept=".txt,.tab,.abc,.xml,.musicxml,.mxl,.mid,.midi,.pdf,.png,.jpg,.jpeg"></label></p>
+      <p class="hint">Guitar tab (.txt), ABC (.abc), MusicXML (.xml, .musicxml, .mxl) and MIDI (.mid) work. You can also paste tab or ABC below.</p>
+    </div>
+    <textarea id="importText" rows="6" spellcheck="false" placeholder="e|---0---2---3---2---|&#10;B|-----------------|&#10;G|-----------------|&#10;D|-----------------|&#10;A|-----------------|&#10;E|-----------------|" aria-label="Paste tab or ABC"></textarea>
+    <div class="row import-opts">
+      <label class="field">
+        <span>Tab timing</span>
+        <select id="tabMode">
+          <option value="bar">Fit each bar to the time signature</option>
+          <option value="0.25">Each dash is a sixteenth note</option>
+          <option value="0.5">Each dash is an eighth note</option>
+          <option value="1">Each dash is a quarter note</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Capo</span>
+        <select id="capo"></select>
+      </label>
+      <label class="field" id="partField" hidden>
+        <span>Part</span>
+        <select id="part"></select>
+      </label>
+      <label class="inline"><input id="topVoice" type="checkbox" checked> Melody only (top note)</label>
+      <button id="importBtn" type="button" class="primary">Load pasted text</button>
+    </div>
+    <p id="importMsg" class="msg" role="status"></p>
+
+    <div id="melodyPanel" hidden>
+      <div class="row melody-bar">
+        <label class="inline"><input id="melodyOn" type="checkbox" checked> Play melody</label>
+        <label class="inline"><input id="strumOn" type="checkbox" checked> Play strum</label>
+        <label class="field">
+          <span>Melody sound</span>
+          <select id="inst">
+            <option value="fiddle">Fiddle</option>
+            <option value="mandolin">Mandolin</option>
+            <option value="guitar">Guitar</option>
+          </select>
+        </label>
+        <button id="detectChords" type="button" class="quiet">Work out chords</button>
+        <button id="clearMelody" type="button" class="quiet">Remove melody</button>
+      </div>
+      <div class="roll-wrap" id="rollWrap"><canvas id="roll" height="150" aria-label="Melody piano roll"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-mix">
+    <div class="card-head"><h2 id="h-mix">Mix</h2></div>
+    <div class="mix">
+      <label class="field slider"><span>Guitar</span><input id="vGuitar" type="range" min="0" max="100" value="80"></label>
+      <label class="field slider"><span>Bass notes</span><input id="vBass" type="range" min="0" max="100" value="90"></label>
+      <label class="field slider"><span>Melody</span><input id="vMelody" type="range" min="0" max="100" value="60"></label>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Sounds are synthesized in your browser. Everything stays on your device.</p>
+</footer>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
