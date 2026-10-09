@@ -1,13 +1,15 @@
 // Offline support. Every shipped file is cached on install so the app opens with no signal.
 // ASSET_VERSION matches the ?v= stamps in index.html and src/; `npm run bump` raises both.
-const ASSET_VERSION = 3;
+const ASSET_VERSION = 4;
 const CACHE = `strum-studio-v${ASSET_VERSION}`;
 const SRC = ['app.js', 'audio.js', 'chart-edit.js', 'music.js', 'parsers.js', 'song.js'];
 const ICONS = ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon.svg'];
+const SAMPLES = ['Bb2', 'Bb3', 'Bb4', 'Bb5', 'Db3', 'Db4', 'Db5', 'Db6', 'E2', 'E3', 'E4', 'E5', 'G2', 'G3', 'G4', 'G5'].map((n) => `${n}.mp3`);
 const PRECACHE = [
   './', './index.html', './manifest.webmanifest', `./styles.css?v=${ASSET_VERSION}`,
   ...SRC.map((f) => `./src/${f}?v=${ASSET_VERSION}`),
   ...ICONS.map((f) => `./icons/${f}`),
+  ...SAMPLES.map((f) => `./samples/guitar/${f}`),
 ];
 
 self.addEventListener('install', (e) => {
@@ -30,7 +32,7 @@ async function save(req, res) {
   return res;
 }
 
-// Stamped files (?v=N) never change, so the cached copy is always right.
+// Stamped files (?v=N) and recordings never change, so the cached copy is always right.
 async function cacheFirst(req) {
   return (await caches.match(req)) || save(req, await fetch(req));
 }
@@ -61,5 +63,6 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  e.respondWith(url.searchParams.has('v') ? cacheFirst(req) : networkFirst(req));
+  const fixed = url.searchParams.has('v') || url.pathname.includes('/samples/');
+  e.respondWith(fixed ? cacheFirst(req) : networkFirst(req));
 });

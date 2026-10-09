@@ -336,3 +336,13 @@ function makeZip(files) {
   const all = Buffer.concat([...locals, centralBuf, eocd]);
   return all.buffer.slice(all.byteOffset, all.byteOffset + all.length);
 }
+
+test('every guitar sample file is listed, and notes use the nearest one', async () => {
+  const { GUITAR_SAMPLES, nearestSample } = await import('../src/audio.js');
+  const { readdirSync } = await import('node:fs');
+  assert.deepEqual(GUITAR_SAMPLES.map((n) => `${n}.mp3`).sort(), readdirSync('samples/guitar').sort());
+  const samples = [40, 43, 46, 49].map((midi) => ({ midi }));
+  assert.equal(nearestSample(samples, 41).sample.midi, 40);
+  assert.equal(nearestSample(samples, 45).sample.midi, 46);
+  assert.ok(Math.abs(nearestSample(samples, 38).rate - Math.pow(2, -2 / 12)) < 1e-9);
+});

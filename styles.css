@@ -61,6 +61,7 @@ body {
 main, footer { max-width: 960px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
 main { display: grid; gap: 16px; padding-top: 16px; padding-bottom: 24px; }
 footer { padding-bottom: calc(32px + env(safe-area-inset-bottom)); color: var(--ink-soft); font-size: 0.9rem; }
+footer a { color: inherit; }
 
 h2 { margin: 0; font: 700 1.3rem/1.2 var(--slab); }
 
