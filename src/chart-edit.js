@@ -1,34 +1,47 @@
 // Chord chart editing: the chord palette for a key, and drag-and-drop edits on a list of bars.
 // A chart is an array of bars, each an array of chord names, e.g. [['G'], ['C', 'D']].
 
-import { FLAT_MAJOR_TONICS, mod12, parseChord, pcName } from './music.js?v=1';
-import { parseChart, formatChart } from './song.js?v=1';
+import { FLAT_MAJOR_TONICS, mod12, parseChord, pcName } from './music.js?v=2';
+import { parseChart, formatChart } from './song.js?v=2';
 
 export const MAX_CHORDS_PER_BAR = 4;
 
+// Chord types offered everywhere. 'key' means the chord's natural quality in the key.
 export const CHORD_TYPES = [
   { id: '', name: 'Major' },
   { id: 'm', name: 'Minor' },
-  { id: '7', name: 'Seventh' },
-  { id: 'm7', name: 'Minor seventh' },
+  { id: '7', name: '7th' },
+  { id: 'dim', name: 'Diminished' },
 ];
 
-// Degree (semitones above the tonic), suffix, Roman numeral. The first six are the diatonic
-// chords; the rest are common in bluegrass (V7, the major II and VI, and the flat seven).
-const PALETTE = [
-  [0, '', 'I'], [5, '', 'IV'], [7, '', 'V'], [7, '7', 'V7'], [9, 'm', 'vi'], [2, 'm', 'ii'],
-  [4, 'm', 'iii'], [2, '', 'II'], [4, '', 'III'], [9, '', 'VI'], [10, '', '♭VII'],
+// Scale degrees in order: semitones above the tonic, Roman numeral, natural chord type.
+const DEGREES = [
+  [0, 'I', ''], [2, 'II', 'm'], [4, 'III', 'm'], [5, 'IV', ''], [7, 'V', ''], [9, 'VI', 'm'],
+  [10, '♭VII', ''], [11, 'VII', 'dim'],
 ];
 
 export const keyUsesFlats = (tonic) => FLAT_MAJOR_TONICS.has(mod12(tonic));
 
-/** Chips for the palette in a major key: [{ name, roman }]. */
-export function paletteFor(tonic) {
+/** Roman numeral written for a chord type: lower case for minor and diminished. */
+export function romanFor(numeral, type) {
+  const flat = numeral.startsWith('♭') ? '♭' : '';
+  const base = numeral.slice(flat.length);
+  if (type === 'm') return flat + base.toLowerCase();
+  if (type === 'dim') return `${flat}${base.toLowerCase()}°`;
+  if (type === '7') return `${flat}${base}7`;
+  return flat + base;
+}
+
+/**
+ * Chips for the palette in a major key, I to VII in order: [{ name, roman }].
+ * type 'key' gives each degree its natural chord in the key; otherwise every chip uses that type.
+ */
+export function paletteFor(tonic, type = 'key') {
   const flats = keyUsesFlats(tonic);
-  return PALETTE.map(([deg, suffix, roman]) => ({
-    name: pcName(tonic + deg, flats || roman === '♭VII') + suffix,
-    roman,
-  }));
+  return DEGREES.map(([deg, numeral, natural]) => {
+    const t = type === 'key' ? natural : type;
+    return { name: pcName(tonic + deg, flats || numeral === '♭VII') + t, roman: romanFor(numeral, t) };
+  });
 }
 
 export const chordName = (rootPc, type, flats = false) => pcName(rootPc, flats) + type;

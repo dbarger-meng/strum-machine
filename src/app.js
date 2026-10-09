@@ -1,15 +1,15 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=1';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=1';
+import { AudioEngine } from './audio.js?v=2';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=2';
 import {
   CELLS, barLength, buildEvents, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=1';
-import { parseAny } from './parsers.js?v=1';
+} from './song.js?v=2';
+import { parseAny } from './parsers.js?v=2';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=1';
+} from './chart-edit.js?v=2';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -36,6 +36,7 @@ const state = {
   strumOn: true,
   vol: { guitar: 80, bass: 90, melody: 60 },
   paletteKey: 7,
+  paletteType: 'key', // 'key' (each chord as it falls in the key) or a chord type for every chip
   placing: null, // chord name picked by tapping a chip, placed by tapping bars
 };
 let track = { events: [], loopLen: 0, barLen: 4, totalBars: 0, chordBars: [] };
@@ -49,7 +50,7 @@ const barLen = () => barLength(timeSig());
 const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
 const FOLDS = 'strumstudio.open';
-const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey'];
+const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType'];
 let saveTimer = null;
 function persist() {
   clearTimeout(saveTimer);
@@ -61,6 +62,7 @@ function restore(obj) {
   if (!obj || typeof obj !== 'object') return;
   for (const k of PERSIST) if (k in obj) state[k] = obj[k];
   if (!Number.isInteger(state.paletteKey) || state.paletteKey < 0 || state.paletteKey > 11) state.paletteKey = chartKey(barsFromChart(state.chart));
+  if (state.paletteType !== 'key' && !CHORD_TYPES.some((t) => t.id === state.paletteType)) state.paletteType = 'key';
   const n = Math.round(barLen() * state.sub);
   if (!Array.isArray(state.cells) || state.cells.length !== n || state.cells.some((c) => !(c in CELLS))) state.cells = defaultCells(barLen(), state.sub);
 }
@@ -242,7 +244,8 @@ function chipEl(name, roman, drag) {
 
 function renderChordPalette() {
   el.chordPalette.innerHTML = '';
-  for (const c of paletteFor(state.paletteKey)) el.chordPalette.appendChild(chipEl(c.name, c.roman, 'palette'));
+  for (const b of el.chordType.querySelectorAll('[data-type]')) b.setAttribute('aria-checked', String(b.dataset.type === state.paletteType));
+  for (const c of paletteFor(state.paletteKey, state.paletteType)) el.chordPalette.appendChild(chipEl(c.name, c.roman, 'palette'));
   const root = +el.otherRoot.value;
   const name = chordName(root, el.otherType.value, keyUsesFlats(state.paletteKey) || keyUsesFlats(root));
   el.otherChip.innerHTML = '';
@@ -442,6 +445,14 @@ function wireChart() {
     state.paletteKey = +el.paletteKey.value;
     el.otherRoot.value = state.paletteKey;
     if (state.placing) state.placing = null;
+    renderChordPalette();
+    persist();
+  });
+  el.chordType.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-type]');
+    if (!b) return;
+    state.paletteType = b.dataset.type;
+    state.placing = null;
     renderChordPalette();
     persist();
   });

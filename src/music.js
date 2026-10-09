@@ -21,7 +21,7 @@ export function parseChord(name) {
   const suffix = m[3];
   let quality = 'maj';
   if (/^(maj|ma|M|Δ)/.test(suffix)) quality = 'maj';
-  else if (/^(dim|°)/.test(suffix)) quality = 'min';
+  else if (/^(dim|°|o(?![a-z]))/.test(suffix)) quality = 'dim';
   else if (/^(m|min|-)/.test(suffix)) quality = 'min';
   else if (/^(7|9|11|13)/.test(suffix)) quality = 'dom7';
   const bassPc = m[4] ? mod12(LETTER[m[4].toUpperCase()] + accVal(m[5])) : null;
@@ -57,10 +57,15 @@ const OPEN_VOICINGS = {
 };
 const SHAPE_E = { maj: [0, 2, 2, 1, 0, 0], min: [0, 2, 2, 0, 0, 0], dom7: [0, 2, 0, 1, 0, 0] };
 const SHAPE_A = { maj: [null, 0, 2, 2, 2, 0], min: [null, 0, 2, 2, 1, 0], dom7: [null, 0, 2, 0, 2, 0] };
+const SHAPE_DIM = [null, 0, 1, 2, 1, null]; // root on the A string: root, flat five, root, minor third
 
 export function chordVoicing(chord) {
   const open = OPEN_VOICINGS[`${chord.pc}:${chord.quality}`];
   if (open) return open.slice();
+  if (chord.quality === 'dim') {
+    const f = mod12(chord.pc - 9);
+    return SHAPE_DIM.map((x) => (x === null ? null : x + f));
+  }
   const fE = mod12(chord.pc - 4);
   const fA = mod12(chord.pc - 9);
   const useE = fE <= fA;
@@ -74,12 +79,13 @@ export function voicingMidi(voicing) {
   return voicing.map((f, i) => (f === null ? null : OPEN_STRINGS[i] + f));
 }
 
-/** Bass notes in the E2–E3 range: the root and the fifth (below the root if it fits). */
+/** Bass notes in the E2–E3 range: the root and the fifth (below the root if it fits; flat for diminished). */
 export function bassNotes(chord) {
   const pc = chord.bassPc ?? chord.pc;
   let root = 40;
   while (root % 12 !== pc) root++;
-  const fifth = root - 5 >= 40 ? root - 5 : root + 7;
+  const up = chord.quality === 'dim' ? 6 : 7;
+  const fifth = root - (12 - up) >= 40 ? root - (12 - up) : root + up;
   return { root, fifth };
 }
 
