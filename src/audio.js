@@ -1,6 +1,6 @@
 // Web Audio engine. Strings are synthesised with Karplus-Strong plucks, so the app needs no sample files.
 
-import { midiToFreq } from './music.js?v=2';
+import { midiToFreq } from './music.js?v=3';
 
 export class AudioEngine {
   constructor() {

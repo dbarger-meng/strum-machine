@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Strum Studio: a boom-chuck bar (brass booms, paper chucks) on denim. -->
+  <rect width="512" height="512" rx="112" fill="#1b2b44"/>
+  <g>
+    <rect x="96" y="166" width="68" height="180" rx="14" fill="#a8761a"/>
+    <rect x="180" y="206" width="68" height="100" rx="14" fill="#f1f2ec"/>
+    <rect x="264" y="166" width="68" height="180" rx="14" fill="#a8761a"/>
+    <rect x="348" y="206" width="68" height="100" rx="14" fill="#f1f2ec"/>
+  </g>
+</svg>

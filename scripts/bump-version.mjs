@@ -1,4 +1,4 @@
-// Stamp a new version on every local asset URL (index.html and the imports in src/),
+// Stamp a new version on every local asset URL (index.html and the imports in src/) and in sw.js,
 // so browsers fetch fresh copies instead of mixing a new page with old cached code.
 // Run `npm run bump` whenever any shipped file changes, before committing.
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
@@ -14,4 +14,6 @@ for (const f of files) {
   const out = src.replace(ASSET, (_, url, _v, quote) => `${url}?v=${next}${quote}`);
   if (out !== src) writeFileSync(f, out);
 }
+const sw = readFileSync('sw.js', 'utf8');
+writeFileSync('sw.js', sw.replace(/const ASSET_VERSION = \d+;/, `const ASSET_VERSION = ${next};`));
 console.log(`Asset version is now ${next}.`);

@@ -2,15 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Strum Studio</title>
   <meta name="description" content="Build a bluegrass strum pattern, load a tune from tab or sheet music files, and play along.">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b2b44">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Strum Studio">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 <header class="masthead">
-  <h1>Strum Studio</h1>
-  <p>Build a bluegrass strum pattern, load a tune, and play along.</p>
+  <div class="masthead-inner">
+    <div>
+      <h1>Strum Studio</h1>
+      <p>Build a bluegrass strum pattern, load a tune, and play along.</p>
+    </div>
+    <button id="installBtn" class="install-btn" type="button" hidden>Install app</button>
+  </div>
+  <p id="iosHint" class="install-hint" hidden>
+    <span>To install, tap Share, then Add to Home Screen.</span>
+    <button id="iosHintClose" type="button" aria-label="Dismiss install tip">×</button>
+  </p>
 </header>
 
 <main>
@@ -200,6 +216,6 @@
   <p>Sounds are synthesized in your browser. Everything stays on your device.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=2"></script>
+<script type="module" src="src/app.js?v=3"></script>
 </body>
 </html>

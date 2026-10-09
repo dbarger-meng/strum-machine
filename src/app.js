@@ -1,15 +1,15 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=2';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=2';
+import { AudioEngine } from './audio.js?v=3';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=3';
 import {
   CELLS, barLength, buildEvents, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=2';
-import { parseAny } from './parsers.js?v=2';
+} from './song.js?v=3';
+import { parseAny } from './parsers.js?v=3';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=2';
+} from './chart-edit.js?v=3';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -50,6 +50,7 @@ const barLen = () => barLength(timeSig());
 const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
 const FOLDS = 'strumstudio.open';
+const INSTALL_HINT = 'strumstudio.installHint';
 const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType'];
 let saveTimer = null;
 function persist() {
@@ -858,6 +859,39 @@ function wire() {
   }
 }
 
+// ---------- install as an app ----------
+function wireInstall() {
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferred = e;
+    el.installBtn.hidden = false;
+  });
+  el.installBtn.addEventListener('click', async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    try { await deferred.userChoice; } catch (e) { /* closed */ }
+    deferred = null;
+    el.installBtn.hidden = true;
+  });
+  window.addEventListener('appinstalled', () => { el.installBtn.hidden = true; });
+
+  // iPhone and iPad Safari have no install prompt, so show a one-line tip instead.
+  const standalone = navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(INSTALL_HINT) === '1'; } catch (e) { /* storage unavailable */ }
+  if (ios && !standalone && !dismissed) el.iosHint.hidden = false;
+  el.iosHintClose.addEventListener('click', () => {
+    el.iosHint.hidden = true;
+    try { localStorage.setItem(INSTALL_HINT, '1'); } catch (e) { /* storage unavailable */ }
+  });
+
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+}
+
 function init() {
   fillStaticSelects();
   loadInitial();
@@ -867,6 +901,7 @@ function init() {
   wire();
   wireChart();
   wireFolds();
+  wireInstall();
   changed({ full: true });
   window.addEventListener('resize', () => drawRoll());
 }
