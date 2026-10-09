@@ -6,6 +6,10 @@ import {
   CELLS, barLength, buildEvents, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
 } from './song.js';
 import { parseAny } from './parsers.js';
+import {
+  CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
+  paletteFor, removeBar,
+} from './chart-edit.js';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -31,6 +35,8 @@ const state = {
   melodyOn: true,
   strumOn: true,
   vol: { guitar: 80, bass: 90, melody: 60 },
+  paletteKey: 7,
+  placing: null, // chord name picked by tapping a chip, placed by tapping bars
 };
 let track = { events: [], loopLen: 0, barLen: 4, totalBars: 0, chordBars: [] };
 let lastImport = null;
@@ -42,7 +48,8 @@ const barLen = () => barLength(timeSig());
 // ---------- persistence ----------
 const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
-const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol'];
+const FOLDS = 'strumstudio.open';
+const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey'];
 let saveTimer = null;
 function persist() {
   clearTimeout(saveTimer);
@@ -53,6 +60,7 @@ function persist() {
 function restore(obj) {
   if (!obj || typeof obj !== 'object') return;
   for (const k of PERSIST) if (k in obj) state[k] = obj[k];
+  if (!Number.isInteger(state.paletteKey) || state.paletteKey < 0 || state.paletteKey > 11) state.paletteKey = chartKey(barsFromChart(state.chart));
   const n = Math.round(barLen() * state.sub);
   if (!Array.isArray(state.cells) || state.cells.length !== n || state.cells.some((c) => !(c in CELLS))) state.cells = defaultCells(barLen(), state.sub);
 }
@@ -72,6 +80,14 @@ function fillStaticSelects() {
   for (let n = -6; n <= 6; n++) el.transpose.add(new Option(n === 0 ? 'Original key' : `${n > 0 ? '+' : ''}${n} semitones`, n));
   el.capo.innerHTML = '';
   for (let n = 0; n <= 7; n++) el.capo.add(new Option(n === 0 ? 'No capo' : `Capo ${n}`, n));
+  el.paletteKey.innerHTML = '';
+  el.otherRoot.innerHTML = '';
+  for (let pc = 0; pc < 12; pc++) {
+    el.paletteKey.add(new Option(`Key of ${pcName(pc, keyUsesFlats(pc))}`, pc));
+    el.otherRoot.add(new Option(pc === 1 || pc === 3 || pc === 6 || pc === 8 || pc === 10 ? `${pcName(pc)} / ${pcName(pc, true)}` : pcName(pc), pc));
+  }
+  el.otherType.innerHTML = '';
+  for (const t of CHORD_TYPES) el.otherType.add(new Option(t.name, t.id));
 }
 
 function syncControls() {
@@ -89,7 +105,8 @@ function syncControls() {
   el.metro.checked = state.metro;
   el.melodyOn.checked = state.melodyOn;
   el.strumOn.checked = state.strumOn;
-  el.chart.value = state.chart;
+  el.paletteKey.value = state.paletteKey;
+  el.otherRoot.value = state.paletteKey;
   el.vGuitar.value = state.vol.guitar;
   el.vBass.value = state.vol.bass;
   el.vMelody.value = state.vol.melody;
@@ -183,6 +200,7 @@ function renderPresetSelect() {
     el.preset.add(new Option('Custom pattern', 'custom'), 0);
     el.preset.value = 'custom';
   }
+  el.patternSummary.textContent = `${el.preset.selectedOptions[0].text}, ${state.ts}`;
 }
 
 function renderSaved() {
@@ -195,11 +213,44 @@ function renderSaved() {
 
 // ---------- chart ----------
 function parsedChart() { return parseChart(state.chart); }
+const chartBars = () => barsFromChart(state.chart);
 
 function flatsFor(bars) {
   const first = bars.find((b) => b.names.length);
   const c = first && parseChord(first.names[0]);
   return c ? FLAT_MAJOR_TONICS.has(mod12(keyMajorTonic(c) + state.transpose)) : false;
+}
+
+function setChartBars(bars) {
+  state.chart = chartFromBars(bars);
+  changed();
+}
+
+function chipEl(name, roman, drag) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'chip-chord';
+  b.dataset.drag = drag;
+  b.dataset.name = name;
+  b.setAttribute('aria-pressed', String(state.placing === name));
+  b.title = `Drag ${name} into a bar, or tap it and then tap bars`;
+  b.innerHTML = `<span class="chip-name"></span>${roman ? '<span class="chip-roman"></span>' : ''}`;
+  b.querySelector('.chip-name').textContent = name;
+  if (roman) b.querySelector('.chip-roman').textContent = roman;
+  return b;
+}
+
+function renderChordPalette() {
+  el.chordPalette.innerHTML = '';
+  for (const c of paletteFor(state.paletteKey)) el.chordPalette.appendChild(chipEl(c.name, c.roman, 'palette'));
+  const root = +el.otherRoot.value;
+  const name = chordName(root, el.otherType.value, keyUsesFlats(state.paletteKey) || keyUsesFlats(root));
+  el.otherChip.innerHTML = '';
+  el.otherChip.appendChild(chipEl(name, '', 'palette'));
+  el.chartView.classList.toggle('placing', !!state.placing);
+  el.chartHint.textContent = state.placing
+    ? `Tap bars to put ${state.placing} in them. Tap ${state.placing} again or press Escape to stop.`
+    : 'Drag a chord onto a bar to set it, or onto the + to share the bar. Drag a chord in the chart to move it, or to the bin below to remove it.';
 }
 
 function renderChart() {
@@ -211,11 +262,208 @@ function renderChart() {
     const d = document.createElement('div');
     d.className = 'bar';
     d.dataset.bar = i;
-    d.textContent = b.names.map((n) => transposeChord(n, state.transpose, flats)).join('  ');
+    d.dataset.drop = 'bar';
+    const num = document.createElement('span');
+    num.className = 'bar-num';
+    num.textContent = i + 1;
+    d.appendChild(num);
+    const chords = document.createElement('div');
+    chords.className = 'bar-chords';
+    b.names.forEach((name, j) => {
+      const p = document.createElement('button');
+      p.type = 'button';
+      p.className = 'pill';
+      p.dataset.drag = 'chord';
+      p.dataset.drop = 'chord';
+      p.dataset.bar = i;
+      p.dataset.idx = j;
+      p.textContent = name;
+      const sounds = transposeChord(name, state.transpose, flats);
+      if (state.transpose) {
+        const s = document.createElement('small');
+        s.textContent = sounds;
+        p.appendChild(s);
+      }
+      p.setAttribute('aria-label', `Bar ${i + 1}, ${name}${state.transpose ? `, sounds as ${sounds}` : ''}. Delete removes it.`);
+      chords.appendChild(p);
+    });
+    if (b.names.length < MAX_CHORDS_PER_BAR) {
+      const sp = document.createElement('button');
+      sp.type = 'button';
+      sp.className = 'split';
+      sp.dataset.drop = 'split';
+      sp.dataset.bar = i;
+      sp.textContent = '+';
+      sp.setAttribute('aria-label', `Add a chord to bar ${i + 1}`);
+      chords.appendChild(sp);
+    }
+    d.appendChild(chords);
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'bar-del';
+    del.dataset.del = i;
+    del.textContent = '×';
+    del.title = `Remove bar ${i + 1}`;
+    del.setAttribute('aria-label', `Remove bar ${i + 1}`);
+    d.appendChild(del);
     el.chartView.appendChild(d);
   });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'bar add-bar';
+  add.dataset.drop = 'new';
+  add.textContent = bars.length ? '+ Add bar' : 'Drag a chord here to start';
+  el.chartView.appendChild(add);
   const n = track.totalBars || bars.length;
-  el.keyInfo.textContent = bars.length ? `${bars.length} bar${bars.length === 1 ? '' : 's'}, ${n === bars.length ? 'one pass' : `${n} bars with the melody`}` : 'Type chords between bars, like | G | C D |';
+  el.keyInfo.textContent = bars.length ? `${bars.length} bar${bars.length === 1 ? '' : 's'}, ${n === bars.length ? 'one pass' : `${n} bars with the melody`}` : '';
+  renderChordPalette();
+}
+
+function targetOf(node) {
+  const t = node && node.closest('[data-drop]');
+  if (!t) return null;
+  const kind = t.dataset.drop;
+  if (kind === 'trash' || kind === 'new') return { kind, node: t };
+  return { kind, bar: +t.dataset.bar, idx: +t.dataset.idx, node: t };
+}
+
+function sourceOf(node) {
+  return node.dataset.drag === 'chord'
+    ? { kind: 'chord', bar: +node.dataset.bar, idx: +node.dataset.idx }
+    : { kind: 'palette', name: node.dataset.name };
+}
+
+function setPlacing(name) {
+  state.placing = name;
+  renderChordPalette();
+}
+
+// Pointer-based drag so it works the same with a mouse, a pen or a finger.
+let drag = null;
+let swallowClick = false;
+function dragMove(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  if (!drag.ghost) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.ghost = document.createElement('div');
+    drag.ghost.className = 'drag-ghost';
+    drag.ghost.textContent = drag.src.dataset.name || drag.src.firstChild.textContent;
+    document.body.appendChild(drag.ghost);
+    document.body.classList.add('dragging');
+    if (drag.source.kind === 'chord') document.body.classList.add('dragging-chord');
+    drag.src.classList.add('lifted');
+  }
+  e.preventDefault();
+  drag.cx = e.clientX;
+  drag.cy = e.clientY;
+  drag.ghost.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+  updateOver();
+  if (!drag.raf) drag.raf = requestAnimationFrame(autoScroll);
+}
+function updateOver() {
+  const t = targetOf(document.elementFromPoint(drag.cx, drag.cy));
+  const node = t && (t.kind !== 'trash' || drag.source.kind === 'chord') ? t.node : null;
+  if (node !== drag.over) {
+    if (drag.over) drag.over.classList.remove('drop-over');
+    if (node) node.classList.add('drop-over');
+    drag.over = node;
+  }
+}
+// Scroll the page while a chord is held near the top or bottom edge, so far bars and the bin can be reached.
+function autoScroll() {
+  if (!drag || !drag.ghost) return;
+  const top = Math.max(0, document.querySelector('.transport').getBoundingClientRect().bottom) + 50;
+  const bottom = window.innerHeight - 50;
+  const dy = drag.cy < top ? -Math.min(16, top - drag.cy) : drag.cy > bottom ? Math.min(16, drag.cy - bottom) : 0;
+  if (dy) {
+    window.scrollBy(0, dy);
+    updateOver();
+  }
+  drag.raf = requestAnimationFrame(autoScroll);
+}
+function dragEnd(e, cancelled) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const d = drag;
+  drag = null;
+  if (!d.ghost) return;
+  swallowClick = true;
+  setTimeout(() => { swallowClick = false; }, 0);
+  cancelAnimationFrame(d.raf);
+  d.ghost.remove();
+  d.src.classList.remove('lifted');
+  if (d.over) d.over.classList.remove('drop-over');
+  document.body.classList.remove('dragging', 'dragging-chord');
+  if (cancelled || !d.over) return;
+  const t = targetOf(d.over);
+  setChartBars(applyDrop(chartBars(), { ...d.source, copy: e.altKey || e.ctrlKey || e.metaKey }, t));
+}
+
+function wireChart() {
+  document.addEventListener('pointerdown', (e) => {
+    const src = e.target.closest('[data-drag]');
+    if (!src || e.button !== 0 || drag) return;
+    drag = { src, source: sourceOf(src), x: e.clientX, y: e.clientY, id: e.pointerId, ghost: null, over: null, raf: 0, cx: e.clientX, cy: e.clientY };
+  });
+  window.addEventListener('pointermove', dragMove, { passive: false });
+  window.addEventListener('pointerup', (e) => dragEnd(e, false));
+  window.addEventListener('pointercancel', (e) => dragEnd(e, true));
+
+  // Tap to pick a chord, then tap bars to place it.
+  el.chordPalette.addEventListener('click', onChipClick);
+  el.otherChip.addEventListener('click', onChipClick);
+  function onChipClick(e) {
+    const chip = e.target.closest('[data-drag="palette"]');
+    if (!chip || swallowClick) return;
+    setPlacing(state.placing === chip.dataset.name ? null : chip.dataset.name);
+  }
+  el.chartView.addEventListener('click', (e) => {
+    if (swallowClick) return;
+    const del = e.target.closest('[data-del]');
+    if (del) { setChartBars(removeBar(chartBars(), +del.dataset.del)); return; }
+    const t = targetOf(e.target);
+    if (!t) return;
+    if (state.placing) {
+      setChartBars(applyDrop(chartBars(), { kind: 'palette', name: state.placing }, t));
+    } else if (t.kind === 'new') {
+      const bars = chartBars();
+      const last = bars[bars.length - 1];
+      setChartBars([...bars, [last ? last[last.length - 1] : paletteFor(state.paletteKey)[0].name]]);
+    }
+  });
+  el.chartView.addEventListener('keydown', (e) => {
+    const p = e.target.closest('.pill');
+    if (!p || (e.key !== 'Delete' && e.key !== 'Backspace')) return;
+    e.preventDefault();
+    setChartBars(applyDrop(chartBars(), sourceOf(p), { kind: 'trash' }));
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.placing) setPlacing(null); });
+
+  el.paletteKey.addEventListener('change', () => {
+    state.paletteKey = +el.paletteKey.value;
+    el.otherRoot.value = state.paletteKey;
+    if (state.placing) state.placing = null;
+    renderChordPalette();
+    persist();
+  });
+  el.otherRoot.addEventListener('change', renderChordPalette);
+  el.otherType.addEventListener('change', renderChordPalette);
+  el.clearChart.addEventListener('click', () => {
+    if (!chartBars().length || !window.confirm('Remove every bar from the chord chart?')) return;
+    setChartBars([]);
+  });
+}
+
+// ---------- folds ----------
+function wireFolds() {
+  let open = {};
+  try { open = JSON.parse(localStorage.getItem(FOLDS)) || {}; } catch (e) { /* none */ }
+  for (const id of ['patternFold', 'tuneFold']) {
+    el[id].open = !!open[id];
+    el[id].addEventListener('toggle', () => {
+      open[id] = el[id].open;
+      try { localStorage.setItem(FOLDS, JSON.stringify(open)); } catch (e) { /* storage unavailable */ }
+    });
+  }
 }
 
 // ---------- melody roll ----------
@@ -446,7 +694,10 @@ function applyImport(r) {
     state.chart = formatChart(detectChords(r.notes, { barLen: bl, totalBeats: r.totalBeats, key: r.key }));
     how = 'The chords are a guess from the melody. Edit the chart if something sounds off.';
   }
-  el.chart.value = state.chart;
+  state.paletteKey = r.key.majorTonic;
+  el.paletteKey.value = state.paletteKey;
+  el.otherRoot.value = state.paletteKey;
+  el.tuneSummary.textContent = r.title ? `Playing "${r.title}"` : 'Melody loaded';
 
   if (r.parts && r.parts.length > 1) {
     el.part.innerHTML = '';
@@ -558,8 +809,6 @@ function wire() {
     setTimeout(() => { el.share.textContent = 'Copy share link'; }, 1800);
   });
 
-  el.chart.addEventListener('input', () => { state.chart = el.chart.value; changed(); });
-
   el.file.addEventListener('change', () => { if (el.file.files[0]) handleFile(el.file.files[0]); el.file.value = ''; });
   el.drop.addEventListener('dragover', (e) => { e.preventDefault(); el.drop.classList.add('over'); });
   el.drop.addEventListener('dragleave', () => el.drop.classList.remove('over'));
@@ -583,12 +832,12 @@ function wire() {
     if (!window.confirm('Replace the chord chart with chords guessed from the melody?')) return;
     const names = detectChords(state.melody.notes, { barLen: barLen(), totalBeats: state.melody.totalBeats });
     state.chart = formatChart(names);
-    el.chart.value = state.chart;
     changed();
   });
   el.clearMelody.addEventListener('click', () => {
     state.melody = null;
     el.melodyPanel.hidden = true;
+    el.tuneSummary.textContent = 'Tab, ABC, MusicXML or MIDI';
     showMsg('');
     changed();
   });
@@ -605,6 +854,8 @@ function init() {
   renderPalette();
   renderSaved();
   wire();
+  wireChart();
+  wireFolds();
   changed({ full: true });
   window.addEventListener('resize', () => drawRoll());
 }

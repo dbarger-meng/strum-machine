@@ -139,14 +139,80 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
 .feel { display: flex; flex-wrap: wrap; gap: 14px 24px; margin-top: 16px; align-items: flex-end; }
 .slider input { width: 160px; }
 
+/* ---- folds ---- */
+.fold > summary { list-style: none; cursor: pointer; margin-bottom: 0; justify-content: flex-start; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before {
+  content: ""; width: 9px; height: 9px; margin: 0 4px 0 2px;
+  border-right: 2.5px solid var(--ink); border-bottom: 2.5px solid var(--ink);
+  transform: rotate(-45deg);
+}
+.fold[open] > summary { margin-bottom: 14px; }
+.fold[open] > summary::before { transform: rotate(45deg) translate(-2px, -2px); }
+.fold-note { color: var(--ink-soft); font-size: 0.92rem; }
+.pattern-opts { margin-bottom: 14px; }
+
 /* ---- chart ---- */
-.chart-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; margin-top: 12px; }
+.chord-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 18px; }
+.chord-palette { order: 3; display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 100%; }
+.other-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.chip-chord {
+  min-width: 52px; padding: 6px 10px 5px; display: grid; justify-items: center; line-height: 1.1;
+  background: var(--ink); color: var(--paper); border: 2px solid var(--ink); border-radius: 4px;
+  font: 700 1.05rem var(--slab); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.chip-chord .chip-roman { font: 600 0.7rem var(--sans); color: #e4c27f; }
+.chip-chord[aria-pressed="true"] { background: var(--brass); border-color: var(--brass); }
+.chip-chord[aria-pressed="true"] .chip-roman { color: var(--paper); }
+.chart-hint { margin-top: 10px; }
+
+.chart-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin-top: 10px; }
 .bar {
-  min-height: 48px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
-  padding: 8px 10px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--line);
-  border-radius: 3px; font: 700 1.1rem var(--slab);
+  position: relative; min-height: 64px; display: flex; align-items: stretch; gap: 6px;
+  padding: 6px 26px 6px 8px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--line);
+  border-radius: 3px;
 }
 .bar.now { border-left-color: var(--brass); background: #f6edd8; }
+.bar-num { align-self: flex-start; font-size: 0.72rem; color: var(--ink-soft); min-width: 1.2em; }
+.bar-chords { flex: 1; display: flex; gap: 4px; min-width: 0; }
+.pill {
+  flex: 1 1 0; min-width: 0; padding: 4px 2px; display: grid; place-items: center; align-content: center;
+  background: #eef0e8; color: var(--ink); border: 1px solid transparent; border-radius: 3px;
+  font: 700 1.15rem/1.1 var(--slab); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  overflow-wrap: anywhere;
+}
+.pill small { font: 600 0.72rem var(--sans); color: var(--ink-soft); }
+.pill.lifted, .chip-chord.lifted { opacity: 0.45; }
+.split {
+  display: none; flex: 0 0 30px; padding: 0; background: transparent; color: var(--ink-soft);
+  border: 2px dashed var(--line); border-radius: 3px; font: 700 1.1rem var(--sans);
+}
+.dragging .split, .placing .split { display: block; }
+.bar-del {
+  position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; padding: 0;
+  background: transparent; border: 0; border-radius: 3px; color: var(--ink-soft); font-size: 1rem; line-height: 1;
+}
+.bar-del:hover { background: #e9ebe3; color: var(--chop); }
+.add-bar {
+  display: grid; place-items: center; padding: 6px 8px; color: var(--ink-soft); background: transparent;
+  border: 2px dashed var(--line); font: 600 0.92rem var(--sans);
+}
+.drop-over { outline: 3px solid var(--brass); outline-offset: 1px; background: #f6edd8 !important; }
+.placing .bar, .placing .pill { cursor: copy; }
+
+.chart-actions { margin-top: 4px; align-items: center; }
+.trash {
+  display: none; flex: 1 1 200px; padding: 12px; text-align: center; color: var(--chop);
+  border: 2px dashed var(--chop); border-radius: 4px; font-weight: 600;
+}
+.dragging-chord .trash { display: block; }
+.drag-ghost {
+  position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none;
+  margin: -22px 0 0 -26px; min-width: 52px; padding: 8px 12px; text-align: center;
+  background: var(--brass); color: var(--paper); border-radius: 4px; font: 700 1.1rem var(--slab);
+  box-shadow: 0 6px 16px rgba(27, 43, 68, 0.3);
+}
+.dragging, .dragging * { cursor: grabbing !important; }
 
 /* ---- import ---- */
 .drop { border: 2px dashed var(--line); border-radius: 6px; padding: 14px 16px; margin-bottom: 12px; background: #fff; }
