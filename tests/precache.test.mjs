@@ -10,6 +10,8 @@ const listed = (name) => JSON.parse(new RegExp(`const ${name} = (\\[[^\\]]*\\]);
 test('service worker precaches every source file and icon', () => {
   assert.deepEqual(listed('SRC').sort(), readdirSync('src').filter((f) => f.endsWith('.js')).sort());
   assert.deepEqual(listed('ICONS').sort(), readdirSync('icons').sort());
+  const samples = /const SAMPLES = (\[[^\]]*\])/.exec(sw)[1];
+  assert.deepEqual(JSON.parse(samples.replace(/'/g, '"')).map((n) => `${n}.mp3`).sort(), readdirSync('samples/guitar').sort());
   for (const f of ['./', './index.html', './manifest.webmanifest', './styles.css?v=']) assert.ok(sw.includes(`'${f}`) || sw.includes(`\`${f}`), `${f} is precached`);
 });
 

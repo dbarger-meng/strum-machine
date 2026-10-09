@@ -2,7 +2,7 @@
 
 A browser app for building bluegrass strum patterns and playing along with a tune. Inspired by [Strum Machine](https://strummachine.com), but it works differently: you design the strum yourself, and you can load a melody from tab or notation files.
 
-No build step and no dependencies. Sounds are synthesized in the browser, and nothing leaves your device.
+No build step and no dependencies. The guitar uses recorded samples (bundled, about 300 KB); other sounds are synthesized in the browser, and nothing leaves your device.
 
 ## Install it as an app
 
@@ -49,7 +49,7 @@ The melody plays (fiddle, mandolin or guitar sound) over the strum. If the file 
 - **Scanned PDFs and photos of sheet music are not supported.** Reading notation from an image needs optical music recognition, which cannot run in a plain web page. Convert the page in MuseScore or Audiveris to MusicXML or MIDI first.
 - Tab has no rhythm information. By default each bar is stretched to fit the time signature, so bar lines must line up. If your tab uses a fixed spacing, choose "Each dash is an eighth note" (or another value) under Tab timing.
 - Chord guessing uses major and minor triads, so sevenths and other colors need to be added by hand.
-- Sounds are synthesized plucked strings, not recordings.
+- The guitar is one recorded steel-string guitar, repitched to each note, with a light room reverb. The fiddle and mandolin melody sounds are still synthesized.
 
 ## Releasing
 
@@ -59,6 +59,10 @@ During local development the service worker serves stamped files from its cache,
 
 Icons are drawn in `icons/icon.svg`; `node scripts/make-icons.mjs` regenerates the PNGs.
 
+## Credits
+
+Guitar recordings in `samples/guitar/` come from the FluidR3 GM soundfont by Frank Wen, as rendered to MP3 by [gleitz/midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts), and are used under the [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/) license.
+
 ## Layout
 
 ```
@@ -67,7 +71,8 @@ src/music.js     chords, voicings, bass notes, key and chord detection
 src/song.js      chart parsing, presets, pattern to timed events
 src/chart-edit.js chord palette and drag-and-drop chart edits
 src/parsers.js   tab, ABC, MusicXML/MXL and MIDI importers
-src/audio.js     Web Audio synthesis (Karplus-Strong strings, fiddle, chop, click)
+src/audio.js     Web Audio: sampled guitar, Karplus-Strong fallback, fiddle, chop, click, reverb
+samples/guitar/  steel-string guitar recordings, one every three semitones
 src/app.js       UI, scheduler, import flow, install button
 sw.js            offline cache (service worker)
 manifest.webmanifest, icons/   app name, colors and icons for installing
