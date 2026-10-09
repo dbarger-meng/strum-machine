@@ -2,7 +2,7 @@
 
 import {
   parseChord, transposeChord, chordVoicing, voicingMidi, bassNotes, scaleStep, keyMajorTonic,
-} from './music.js';
+} from './music.js?v=1';
 
 export const barLength = (ts) => (ts.num * 4) / ts.den; // length of a bar in quarter-note beats
 

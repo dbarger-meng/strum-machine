@@ -39,6 +39,10 @@ The melody plays (fiddle, mandolin or guitar sound) over the strum. If the file 
 - Chord guessing uses major and minor triads, so sevenths and other colors need to be added by hand.
 - Sounds are synthesized plucked strings, not recordings.
 
+## Releasing
+
+The site is published by GitHub Pages from `main`. Browsers keep files for a few minutes, so every local file URL carries a version stamp (`?v=3`). Whenever a shipped file changes, run `npm run bump` before committing; `npm test` fails if the stamps are missing or mixed.
+
 ## Layout
 
 ```
