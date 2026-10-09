@@ -2,7 +2,7 @@
 // Every parser returns { format, title, notes:[{midi,start,dur}], chords:[{start,name}],
 //   timeSig:{num,den}, tempo, key, totalBeats, parts, warnings } with times in quarter-note beats.
 
-import { parseChord, detectKey, mod12 } from './music.js';
+import { parseChord, detectKey, mod12 } from './music.js?v=1';
 
 const LETTER = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 const keyOf = (midi, start) => `${midi}@${Math.round(start * 1e4)}`;
