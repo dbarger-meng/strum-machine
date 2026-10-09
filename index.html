@@ -44,16 +44,23 @@
     </div>
   </section>
 
-  <section class="card" aria-labelledby="h-pattern">
-    <div class="card-head">
+  <details class="card fold" id="patternFold">
+    <summary class="card-head">
       <h2 id="h-pattern">Strum pattern</h2>
-      <div class="row">
-        <select id="preset" aria-label="Pattern preset"></select>
-        <select id="sub" aria-label="Grid resolution">
+      <span id="patternSummary" class="fold-note"></span>
+    </summary>
+    <div class="row pattern-opts">
+      <label class="field">
+        <span>Preset</span>
+        <select id="preset"></select>
+      </label>
+      <label class="field">
+        <span>Grid</span>
+        <select id="sub">
           <option value="2">Eighth notes</option>
           <option value="4">Sixteenth notes</option>
         </select>
-      </div>
+      </label>
     </div>
 
     <div id="palette" class="palette" role="radiogroup" aria-label="Stroke to paint"></div>
@@ -86,22 +93,42 @@
       <button id="clearPattern" type="button" class="quiet">Clear grid</button>
       <button id="share" type="button" class="quiet">Copy share link</button>
     </div>
-  </section>
+  </details>
 
   <section class="card" aria-labelledby="h-chart">
     <div class="card-head">
       <h2 id="h-chart">Chord chart</h2>
       <p id="keyInfo" class="hint"></p>
     </div>
-    <textarea id="chart" rows="4" spellcheck="false" aria-label="Chord chart, bars separated by vertical bars"></textarea>
+    <div class="chord-tools">
+      <label class="field">
+        <span>Chords in</span>
+        <select id="paletteKey" aria-label="Key for the chord palette"></select>
+      </label>
+      <div id="chordPalette" class="chord-palette" aria-label="Chords to drag into the chart"></div>
+      <div class="field other-chord">
+        <span>Other chord</span>
+        <span class="other-row">
+          <select id="otherRoot" aria-label="Other chord root"></select>
+          <select id="otherType" aria-label="Other chord type"></select>
+          <span id="otherChip"></span>
+        </span>
+      </div>
+    </div>
+    <p id="chartHint" class="hint chart-hint"></p>
+    <div id="chartView" class="chart-view" aria-label="Chord chart, one tile per bar"></div>
     <p id="chartWarn" class="warn" role="status"></p>
-    <div id="chartView" class="chart-view" aria-label="Chart preview"></div>
+    <div class="row chart-actions">
+      <div id="chartTrash" class="trash" data-drop="trash" aria-hidden="true">Drop here to remove</div>
+      <button id="clearChart" type="button" class="quiet">Clear chart</button>
+    </div>
   </section>
 
-  <section class="card" aria-labelledby="h-import">
-    <div class="card-head">
+  <details class="card fold" id="tuneFold">
+    <summary class="card-head">
       <h2 id="h-import">Load a tune</h2>
-    </div>
+      <span id="tuneSummary" class="fold-note">Tab, ABC, MusicXML or MIDI</span>
+    </summary>
     <div id="drop" class="drop" tabindex="0">
       <p><strong>Drop a file here</strong> or <label class="file-btn">choose a file<input id="file" type="file" accept=".txt,.tab,.abc,.xml,.musicxml,.mxl,.mid,.midi,.pdf,.png,.jpg,.jpeg"></label></p>
       <p class="hint">Guitar tab (.txt), ABC (.abc), MusicXML (.xml, .musicxml, .mxl) and MIDI (.mid) work. You can also paste tab or ABC below.</p>
@@ -147,7 +174,7 @@
       </div>
       <div class="roll-wrap" id="rollWrap"><canvas id="roll" height="150" aria-label="Melody piano roll"></canvas></div>
     </div>
-  </section>
+  </details>
 
   <section class="card" aria-labelledby="h-mix">
     <div class="card-head"><h2 id="h-mix">Mix</h2></div>

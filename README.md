@@ -19,7 +19,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Bass runs.** At chord changes the last beat can turn into a two-note stepwise run into the next chord (every change, or every other one).
 
-**Chord chart.** Type bars like `| G | C D | % |`. Each chord uses a guitar voicing (open shapes where they exist, barre shapes otherwise). Tempo, key shift, time signature, loop, count-in and click are in the transport bar.
+**Chord chart.** Drag chords from the palette (the common chords of the key you pick, plus any other chord) onto the bars. Drop on the + to put two or more chords in one bar, drag a chord in the chart to move it, or drag it to the bin to remove it. You can also tap a chord, then tap bars to place it. Each chord uses a guitar voicing (open shapes where they exist, barre shapes otherwise). Tempo, key shift, time signature, loop, count-in and click are in the transport bar.
 
 **Load a tune.** Drop a file or paste text:
 
@@ -45,6 +45,7 @@ The melody plays (fiddle, mandolin or guitar sound) over the strum. If the file 
 index.html, styles.css
 src/music.js     chords, voicings, bass notes, key and chord detection
 src/song.js      chart parsing, presets, pattern to timed events
+src/chart-edit.js chord palette and drag-and-drop chart edits
 src/parsers.js   tab, ABC, MusicXML/MXL and MIDI importers
 src/audio.js     Web Audio synthesis (Karplus-Strong strings, fiddle, chop, click)
 src/app.js       UI, scheduler, import flow
