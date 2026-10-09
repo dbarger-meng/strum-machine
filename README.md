@@ -4,6 +4,18 @@ A browser app for building bluegrass strum patterns and playing along with a tun
 
 No build step and no dependencies. Sounds are synthesized in the browser, and nothing leaves your device.
 
+## Install it as an app
+
+Live at **https://dbarger-meng.github.io/strum-machine/**. It installs from the browser, with no app store:
+
+- **Android (Chrome):** open the link, then tap **Install app** at the top of the page (or the **⋮** menu, then **Install app** / **Add to Home screen**). It appears in your app drawer and opens full screen.
+- **Computer (Chrome or Edge):** click **Install app** on the page, or the install icon at the right of the address bar.
+- **iPhone or iPad (Safari):** tap **Share**, then **Add to Home Screen**.
+
+Once opened, the app keeps a copy on the device and works offline, including importing files. When online it picks up new releases automatically.
+
+Phone notes: iPhones can silence web audio when the ringer switch is set to silent. Importing `.mxl` files needs Safari 16.4 or later.
+
 ## Run it
 
 ```
@@ -41,7 +53,11 @@ The melody plays (fiddle, mandolin or guitar sound) over the strum. If the file 
 
 ## Releasing
 
-The site is published by GitHub Pages from `main`. Browsers keep files for a few minutes, so every local file URL carries a version stamp (`?v=3`). Whenever a shipped file changes, run `npm run bump` before committing; `npm test` fails if the stamps are missing or mixed.
+The site is published by GitHub Pages from `main`. Browsers keep files for a few minutes, so every local file URL carries a version stamp (`?v=3`). Whenever a shipped file changes, run `npm run bump` before committing; it also updates `ASSET_VERSION` in `sw.js`, so installed apps fetch the new files. `npm test` fails if the stamps are missing or mixed, or if a file in `src/` or `icons/` is missing from the offline list in `sw.js`.
+
+During local development the service worker serves stamped files from its cache, so code edits may not show until you bump the version, or tick "Update on reload" in DevTools > Application > Service workers.
+
+Icons are drawn in `icons/icon.svg`; `node scripts/make-icons.mjs` regenerates the PNGs.
 
 ## Layout
 
@@ -52,6 +68,8 @@ src/song.js      chart parsing, presets, pattern to timed events
 src/chart-edit.js chord palette and drag-and-drop chart edits
 src/parsers.js   tab, ABC, MusicXML/MXL and MIDI importers
 src/audio.js     Web Audio synthesis (Karplus-Strong strings, fiddle, chop, click)
-src/app.js       UI, scheduler, import flow
+src/app.js       UI, scheduler, import flow, install button
+sw.js            offline cache (service worker)
+manifest.webmanifest, icons/   app name, colors and icons for installing
 tests/           node:test suite
 ```
