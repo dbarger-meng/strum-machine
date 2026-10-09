@@ -16,6 +16,8 @@ test('parseChord handles qualities, accidentals and slash bass', () => {
   assert.deepEqual(pick(parseChord('D7')), { pc: 2, quality: 'dom7', bassPc: null });
   assert.deepEqual(pick(parseChord('Gmaj7')), { pc: 7, quality: 'maj', bassPc: null });
   assert.deepEqual(pick(parseChord('G/B')), { pc: 7, quality: 'maj', bassPc: 11 });
+  assert.deepEqual(pick(parseChord('Bdim')), { pc: 11, quality: 'dim', bassPc: null });
+  assert.deepEqual(pick(parseChord('F#°')), { pc: 6, quality: 'dim', bassPc: null });
   assert.equal(parseChord('hello'), null);
   assert.equal(parseChord('H'), null);
 });
@@ -38,6 +40,9 @@ test('voicings: open chords and barre fallbacks sound the right notes', () => {
   assert.deepEqual([...new Set(names('Bb'))].sort((a, b) => a - b), [2, 5, 10]);
   // F#m: F# A C#
   assert.deepEqual([...new Set(names('F#m'))].sort((a, b) => a - b), [1, 6, 9]);
+  // Bdim: B D F, and Adim from the open A string: A C Eb
+  assert.deepEqual([...new Set(names('Bdim'))].sort((a, b) => a - b), [2, 5, 11]);
+  assert.deepEqual([...new Set(names('Adim'))].sort((a, b) => a - b), [0, 3, 9]);
 });
 
 test('bass notes are root and a fifth in the guitar bass range', () => {
@@ -46,6 +51,7 @@ test('bass notes are root and a fifth in the guitar bass range', () => {
   assert.deepEqual(bassNotes(parseChord('D')), { root: 50, fifth: 45 });
   assert.deepEqual(bassNotes(parseChord('E')), { root: 40, fifth: 47 });
   assert.deepEqual(bassNotes(parseChord('A')), { root: 45, fifth: 40 });
+  assert.deepEqual(bassNotes(parseChord('Bdim')), { root: 47, fifth: 41 });
 });
 
 test('scaleStep walks diatonically', () => {

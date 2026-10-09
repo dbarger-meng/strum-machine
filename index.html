@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Strum Studio</title>
   <meta name="description" content="Build a bluegrass strum pattern, load a tune from tab or sheet music files, and play along.">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 <header class="masthead">
@@ -105,6 +105,16 @@
         <span>Chords in</span>
         <select id="paletteKey" aria-label="Key for the chord palette"></select>
       </label>
+      <div class="field type-field">
+        <span id="typeLabel">Chord type</span>
+        <div id="chordType" class="segmented" role="radiogroup" aria-labelledby="typeLabel">
+          <button type="button" role="radio" data-type="key" title="Each chord as it falls in the key">In key</button>
+          <button type="button" role="radio" data-type="">Major</button>
+          <button type="button" role="radio" data-type="m">Minor</button>
+          <button type="button" role="radio" data-type="7">7th</button>
+          <button type="button" role="radio" data-type="dim">Dim</button>
+        </div>
+      </div>
       <div id="chordPalette" class="chord-palette" aria-label="Chords to drag into the chart"></div>
       <div class="field other-chord">
         <span>Other chord</span>
@@ -190,6 +200,6 @@
   <p>Sounds are synthesized in your browser. Everything stays on your device.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=1"></script>
+<script type="module" src="src/app.js?v=2"></script>
 </body>
 </html>

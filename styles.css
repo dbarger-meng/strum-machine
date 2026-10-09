@@ -154,7 +154,16 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
 
 /* ---- chart ---- */
 .chord-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 18px; }
-.chord-palette { order: 3; display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 100%; }
+.type-field { order: 3; flex: 1 1 100%; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ink-soft); border-radius: 4px; overflow: hidden; width: fit-content; }
+.segmented button {
+  padding: 6px 14px; background: #fff; color: var(--ink); border: 0; border-left: 1px solid var(--line);
+  font: 600 0.9rem var(--sans);
+}
+.segmented button:first-child { border-left: 0; }
+.segmented button:hover { background: #e9ebe3; }
+.segmented button[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+.chord-palette { order: 4; display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 100%; }
 .other-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .chip-chord {
   min-width: 52px; padding: 6px 10px 5px; display: grid; justify-items: center; line-height: 1.1;

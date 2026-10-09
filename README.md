@@ -19,7 +19,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Bass runs.** At chord changes the last beat can turn into a two-note stepwise run into the next chord (every change, or every other one).
 
-**Chord chart.** Drag chords from the palette (the common chords of the key you pick, plus any other chord) onto the bars. Drop on the + to put two or more chords in one bar, drag a chord in the chart to move it, or drag it to the bin to remove it. You can also tap a chord, then tap bars to place it. Each chord uses a guitar voicing (open shapes where they exist, barre shapes otherwise). Tempo, key shift, time signature, loop, count-in and click are in the transport bar.
+**Chord chart.** Drag chords from the palette onto the bars. The palette shows the chords on each step of the key you pick, I to VII in order. A chord type switch shows them as they fall in the key, or all major, minor, 7th or diminished, and "Other chord" covers anything else. Drop on the + to put two or more chords in one bar, drag a chord in the chart to move it, or drag it to the bin to remove it. You can also tap a chord, then tap bars to place it. Each chord uses a guitar voicing (open shapes where they exist, barre shapes otherwise). Tempo, key shift, time signature, loop, count-in and click are in the transport bar.
 
 **Load a tune.** Drop a file or paste text:
 

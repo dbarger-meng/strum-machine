@@ -4,14 +4,17 @@ import {
   paletteFor, chordName, barsFromChart, chartFromBars, chartKey, applyDrop, removeBar, MAX_CHORDS_PER_BAR,
 } from '../src/chart-edit.js';
 
-const names = (tonic) => paletteFor(tonic).map((c) => c.name);
+const names = (tonic, type) => paletteFor(tonic, type).map((c) => c.name);
 
-test('palette lists the common chords of a key with sensible spelling', () => {
-  assert.deepEqual(names(7), ['G', 'C', 'D', 'D7', 'Em', 'Am', 'Bm', 'A', 'B', 'E', 'F']);
-  assert.deepEqual(names(5).slice(0, 6), ['F', 'Bb', 'C', 'C7', 'Dm', 'Gm']);
-  assert.equal(names(0).at(-1), 'Bb'); // flat seven is spelled flat even in sharp keys
-  assert.equal(paletteFor(7)[0].roman, 'I');
-  assert.equal(chordName(10, 'm7', true), 'Bbm7');
+test('palette runs I to VII in order, in key or all one chord type', () => {
+  assert.deepEqual(names(7), ['G', 'Am', 'Bm', 'C', 'D', 'Em', 'F', 'F#dim']);
+  assert.deepEqual(paletteFor(7).map((c) => c.roman), ['I', 'ii', 'iii', 'IV', 'V', 'vi', '♭VII', 'vii°']);
+  assert.deepEqual(names(7, ''), ['G', 'A', 'B', 'C', 'D', 'E', 'F', 'F#']);
+  assert.deepEqual(names(7, '7'), ['G7', 'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'F#7']);
+  assert.deepEqual(paletteFor(7, 'dim').map((c) => c.roman).slice(0, 2), ['i°', 'ii°']);
+  assert.deepEqual(names(5).slice(0, 4), ['F', 'Gm', 'Am', 'Bb']);
+  assert.equal(names(0)[6], 'Bb'); // flat seven is spelled flat even in sharp keys
+  assert.equal(chordName(10, 'dim', true), 'Bbdim');
 });
 
 test('chart text and bars round-trip, and the key comes from the first chord', () => {
