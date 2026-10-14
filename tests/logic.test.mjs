@@ -108,6 +108,16 @@ test('boom-chuck on G then C produces bass, chuck and fifth events', () => {
   assert.deepEqual(bar0[1].notes, [50, 55, 59, 67]); // chuck = D G B G (top four strings of an open G)
 });
 
+test('picked bass notes ring until the next bass note, at most a bar', () => {
+  const t = buildEvents({ bars: parseChart('| G | G |').bars, timeSig: { num: 4, den: 4 }, pattern: { cells: 'R.C.F.C.'.split('') }, bassRuns: 'off' });
+  const bass = t.events.filter((e) => e.kind === 'bass');
+  assert.deepEqual(bass.map((e) => e.beat), [0, 2, 4, 6]);
+  for (const e of bass) assert.ok(Math.abs(e.dur - 1.95) < 1e-9, `dur ${e.dur}`);
+  const lone = buildEvents({ bars: parseChart('| G |').bars, timeSig: { num: 4, den: 4 }, pattern: { cells: 'R.C.C.C.'.split('') }, bassRuns: 'off' });
+  assert.ok(Math.abs(lone.events.find((e) => e.kind === 'bass').dur - 3.95) < 1e-9);
+  assert.ok(t.events.every((e) => !('ring' in e)));
+});
+
 test('bass run replaces the last beat when the chord changes', () => {
   const { bars } = parseChart('| G | C |');
   const out = buildEvents({

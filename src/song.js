@@ -2,7 +2,7 @@
 
 import {
   parseChord, transposeChord, chordVoicing, voicingMidi, bassNotes, scaleStep, keyMajorTonic,
-} from './music.js?v=4';
+} from './music.js?v=5';
 
 export const barLength = (ts) => (ts.num * 4) / ts.den; // length of a bar in quarter-note beats
 
@@ -199,8 +199,8 @@ export function buildEvents({
       const v = voicingMidi(chordVoicing(ch));
       const upTo = (from, to) => v.slice(from, to).filter((x) => x !== null);
       switch (cell) {
-        case 'R': events.push({ beat, kind: 'bass', notes: [bn.root], dur: 1, vel: 0.95 }); break;
-        case 'F': events.push({ beat, kind: 'bass', notes: [bn.fifth], dur: 1, vel: 0.9 }); break;
+        case 'R': events.push({ beat, kind: 'bass', notes: [bn.root], dur: 1, vel: 0.95, ring: true }); break;
+        case 'F': events.push({ beat, kind: 'bass', notes: [bn.fifth], dur: 1, vel: 0.9, ring: true }); break;
         case 'C': events.push({ beat, kind: 'strum', notes: upTo(2, 6), dir: 'down', vel: 0.62, dur: 0.3, spread: 0.008 }); break;
         case 'D': events.push({ beat, kind: 'strum', notes: upTo(0, 6), dir: 'down', vel: 0.75, dur: 0.8, spread: 0.011 }); break;
         case 'U': events.push({ beat, kind: 'strum', notes: upTo(3, 6).reverse(), dir: 'up', vel: 0.45, dur: 0.4, spread: 0.007 }); break;
@@ -221,5 +221,15 @@ export function buildEvents({
   const chartLen = chordBars.length * barLen;
   const melodyLen = Math.ceil(melodyEnd / barLen - 1e-6) * barLen;
   const loopLen = Math.max(chartLen, melodyLen);
+
+  // A picked bass string rings under the strums until the next bass note (at most a bar),
+  // rather than stopping after one beat.
+  const basses = events.filter((e) => e.kind === 'bass');
+  basses.forEach((e, k) => {
+    if (!e.ring) return;
+    const next = k + 1 < basses.length ? basses[k + 1].beat : loopLen;
+    e.dur = Math.max(0.25, Math.min(next - e.beat, barLen) - 0.05);
+    delete e.ring;
+  });
   return { events, loopLen, barLen, totalBars: Math.round(loopLen / barLen), chordBars };
 }
