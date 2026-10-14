@@ -2,10 +2,12 @@
 // FluidR3 GM soundfont, CC BY 3.0), repitched to each note. Until they have loaded, and for the
 // mandolin, strings are synthesised with Karplus-Strong plucks.
 
-import { midiToFreq } from './music.js?v=4';
+import { midiToFreq } from './music.js?v=5';
 
 // One recording every three semitones, so no note is shifted by more than a semitone and a half.
 export const GUITAR_SAMPLES = ['E2', 'G2', 'Bb2', 'Db3', 'E3', 'G3', 'Bb3', 'Db4', 'E4', 'G4', 'Bb4', 'Db5', 'E5', 'G5', 'Bb5', 'Db6'];
+// Level of a picked bass note relative to a strum, balanced so the boom only slightly outweighs the chuck.
+const BASS_LEVEL = 0.35;
 const NOTE_PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, Gb: 6, G: 7, Ab: 8, A: 9, Bb: 10, B: 11 };
 const sampleMidi = (name) => 12 * (Number(name.slice(-1)) + 1) + NOTE_PC[name.slice(0, -1)];
 
@@ -60,7 +62,7 @@ export class AudioEngine {
   attach(ctx) {
     this.ctx = ctx;
     this.master = ctx.createGain();
-    this.master.gain.value = 0.9;
+    this.master.gain.value = 1.3;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.knee.value = 20;
@@ -197,7 +199,7 @@ export class AudioEngine {
   }
 
   bass(midi, when, { vel = 0.9, dur = 0.8 } = {}) {
-    this.playPluck(midi, when, { vel: vel * 0.7, dur, bus: 'bass', T: 1.8, damp: 0.65, release: 0.12, bright: 0.55 });
+    this.playPluck(midi, when, { vel: vel * BASS_LEVEL, dur, bus: 'bass', T: 1.8, damp: 0.65, release: 0.12, bright: 1 });
   }
 
   chop(midis, when, { vel = 0.7 } = {}) {
