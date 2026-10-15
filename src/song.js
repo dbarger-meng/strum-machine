@@ -2,7 +2,7 @@
 
 import {
   parseChord, transposeChord, chordVoicing, voicingMidi, bassNotes, scaleStep, keyMajorTonic,
-} from './music.js?v=5';
+} from './music.js?v=6';
 
 export const barLength = (ts) => (ts.num * 4) / ts.den; // length of a bar in quarter-note beats
 
@@ -147,6 +147,17 @@ export function chordsToChart(chordEvents, totalBeats, barLen, perLine = 4) {
     prev = names[names.length - 1];
   }
   return formatChart(bars, perLine);
+}
+
+// ---------- metronome ----------
+/** Click on every quarter-note beat in [b0, b1), accenting the first beat of each bar. */
+export function clickBeats(b0, b1, barLen) {
+  const out = [];
+  for (let b = Math.ceil(b0 - 1e-9) || 0; b < b1 - 1e-9; b++) {
+    const pos = ((b % barLen) + barLen) % barLen;
+    out.push({ beat: b, kind: 'click', accent: pos < 1e-6 });
+  }
+  return out;
 }
 
 // ---------- events ----------

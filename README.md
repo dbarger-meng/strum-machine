@@ -33,6 +33,8 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Chord chart.** Drag chords from the palette onto the bars. The palette shows the chords on each step of the key you pick, I to VII in order. A chord type switch shows them as they fall in the key, or all major, minor, 7th or diminished, and "Other chord" covers anything else. Drop on the + to put two or more chords in one bar, drag a chord in the chart to move it, or drag it to the bin to remove it. You can also tap a chord, then tap bars to place it. Each chord uses a guitar voicing (open shapes where they exist, barre shapes otherwise). Tempo, key shift, time signature, loop, count-in and click are in the transport bar.
 
+**Metronome.** Switch the transport from Band to Metronome to hear just a click at the current tempo and time signature, accented on beat one, with lights showing the beat. It needs no chords. (In Band mode, the Click box adds the same click under the music.) Its volume is in Mix.
+
 **Load a tune.** Drop a file or paste text:
 
 | Format | Notes |

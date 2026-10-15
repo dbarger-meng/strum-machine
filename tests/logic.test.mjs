@@ -5,7 +5,7 @@ import {
   parseChord, transposeChord, chordVoicing, voicingMidi, bassNotes, scaleStep, detectKey, detectChords,
 } from '../src/music.js';
 import {
-  parseChart, buildEvents, formatChart, chordsToChart, defaultCells, resampleCells, presetsFor,
+  parseChart, buildEvents, clickBeats, formatChart, chordsToChart, defaultCells, resampleCells, presetsFor,
 } from '../src/song.js';
 import { parseTab, parseABC, parseMIDI, parseMusicXML, parseMXL, parseAny, expandMeasures } from '../src/parsers.js';
 
@@ -355,4 +355,12 @@ test('every guitar sample file is listed, and notes use the nearest one', async 
   assert.equal(nearestSample(samples, 41).sample.midi, 40);
   assert.equal(nearestSample(samples, 45).sample.midi, 46);
   assert.ok(Math.abs(nearestSample(samples, 38).rate - Math.pow(2, -2 / 12)) < 1e-9);
+});
+
+test('metronome clicks every beat and accents the start of each bar', () => {
+  const four = clickBeats(0, 8, 4);
+  assert.deepEqual(four.map((c) => c.beat), [0, 1, 2, 3, 4, 5, 6, 7]);
+  assert.deepEqual(four.filter((c) => c.accent).map((c) => c.beat), [0, 4]);
+  assert.deepEqual(clickBeats(0.5, 3.2, 3).map((c) => [c.beat, c.accent]), [[1, false], [2, false], [3, true]]);
+  assert.deepEqual(clickBeats(2, 2, 4), []);
 });
