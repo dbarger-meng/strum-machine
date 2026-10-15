@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 <header class="masthead">
@@ -32,6 +32,13 @@
 <main>
   <section class="transport" aria-label="Playback">
     <button id="play" class="play" type="button" aria-pressed="false">Play</button>
+    <div class="field">
+      <span id="modeLabel">Mode</span>
+      <div id="mode" class="segmented" role="radiogroup" aria-labelledby="modeLabel">
+        <button type="button" role="radio" data-mode="band">Band</button>
+        <button type="button" role="radio" data-mode="metronome">Metronome</button>
+      </div>
+    </div>
     <label class="field tempo">
       <span>Tempo</span>
       <span class="tempo-inputs">
@@ -40,7 +47,7 @@
         <span class="unit">bpm</span>
       </span>
     </label>
-    <label class="field">
+    <label class="field band-only">
       <span>Key shift</span>
       <select id="transpose"></select>
     </label>
@@ -53,7 +60,8 @@
         <option value="6/8">6/8</option>
       </select>
     </label>
-    <div class="checks">
+    <div id="beatDots" class="beat-dots metro-only" aria-hidden="true"></div>
+    <div class="checks band-only">
       <label><input id="loop" type="checkbox" checked> Loop</label>
       <label><input id="countIn" type="checkbox"> Count-in</label>
       <label><input id="metro" type="checkbox"> Click</label>
@@ -208,6 +216,7 @@
       <label class="field slider"><span>Guitar</span><input id="vGuitar" type="range" min="0" max="100" value="80"></label>
       <label class="field slider"><span>Bass notes</span><input id="vBass" type="range" min="0" max="100" value="90"></label>
       <label class="field slider"><span>Melody</span><input id="vMelody" type="range" min="0" max="100" value="60"></label>
+      <label class="field slider"><span>Click</span><input id="vClick" type="range" min="0" max="100" value="40"></label>
     </div>
   </section>
 </main>
@@ -216,6 +225,6 @@
   <p>Everything stays on your device. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>; other sounds are synthesized in your browser.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=5"></script>
+<script type="module" src="src/app.js?v=6"></script>
 </body>
 </html>

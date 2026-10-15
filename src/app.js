@@ -1,15 +1,15 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=5';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=5';
+import { AudioEngine } from './audio.js?v=6';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=6';
 import {
-  CELLS, barLength, buildEvents, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=5';
-import { parseAny } from './parsers.js?v=5';
+  CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
+} from './song.js?v=6';
+import { parseAny } from './parsers.js?v=6';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=5';
+} from './chart-edit.js?v=6';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -34,7 +34,8 @@ const state = {
   metro: false,
   melodyOn: true,
   strumOn: true,
-  vol: { guitar: 80, bass: 90, melody: 60 },
+  vol: { guitar: 80, bass: 90, melody: 60, click: 40 },
+  mode: 'band', // 'band' plays the chart; 'metronome' plays only the click
   paletteKey: 7,
   paletteType: 'key', // 'key' (each chord as it falls in the key) or a chord type for every chip
   placing: null, // chord name picked by tapping a chip, placed by tapping bars
@@ -51,7 +52,7 @@ const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
 const FOLDS = 'strumstudio.open';
 const INSTALL_HINT = 'strumstudio.installHint';
-const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType'];
+const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode'];
 let saveTimer = null;
 function persist() {
   clearTimeout(saveTimer);
@@ -63,6 +64,9 @@ function restore(obj) {
   if (!obj || typeof obj !== 'object') return;
   for (const k of PERSIST) if (k in obj) state[k] = obj[k];
   if (!Number.isInteger(state.paletteKey) || state.paletteKey < 0 || state.paletteKey > 11) state.paletteKey = chartKey(barsFromChart(state.chart));
+  if (!state.vol || typeof state.vol !== 'object') state.vol = {};
+  state.vol = { guitar: 80, bass: 90, melody: 60, click: 40, ...state.vol };
+  if (state.mode !== 'metronome') state.mode = 'band';
   if (state.paletteType !== 'key' && !CHORD_TYPES.some((t) => t.id === state.paletteType)) state.paletteType = 'key';
   const n = Math.round(barLen() * state.sub);
   if (!Array.isArray(state.cells) || state.cells.length !== n || state.cells.some((c) => !(c in CELLS))) state.cells = defaultCells(barLen(), state.sub);
@@ -113,6 +117,8 @@ function syncControls() {
   el.vGuitar.value = state.vol.guitar;
   el.vBass.value = state.vol.bass;
   el.vMelody.value = state.vol.melody;
+  el.vClick.value = state.vol.click;
+  renderMode();
   applyVolumes();
 }
 
@@ -120,6 +126,7 @@ function applyVolumes() {
   engine.setVolume('guitar', state.vol.guitar / 100);
   engine.setVolume('bass', state.vol.bass / 100);
   engine.setVolume('melody', state.vol.melody / 100);
+  engine.setVolume('click', state.vol.click / 100);
 }
 
 // ---------- pattern editor ----------
@@ -533,6 +540,7 @@ function rebuild() {
   });
   renderChart();
   drawRoll();
+  if (!play.on) lightBeat(-1);
 }
 
 function changed({ grid = false, patternList = false, full = false } = {}) {
@@ -549,6 +557,7 @@ const beatAt = (t) => play.anchorBeat + (t - play.anchorTime) / spb();
 const timeOf = (b) => play.anchorTime + (b - play.anchorBeat) * spb();
 
 function eventsInRange(b0, b1) {
+  if (state.mode === 'metronome') return clickBeats(b0, b1, track.barLen);
   const out = [];
   const L = track.loopLen;
   const bl = track.barLen;
@@ -595,13 +604,14 @@ function tick() {
 }
 
 function startPlay() {
-  if (!track.loopLen) {
+  const metronome = state.mode === 'metronome';
+  if (!metronome && !track.loopLen) {
     showMsg('Add some chords to the chart or load a tune first.', true);
     return;
   }
   const ctx = engine.ensure();
   applyVolumes();
-  const count = state.countIn ? Math.ceil(track.barLen) : 0;
+  const count = state.countIn && !metronome ? Math.ceil(track.barLen) : 0;
   play.anchorBeat = -count;
   play.anchorTime = ctx.currentTime + 0.08;
   play.scheduledTo = -count;
@@ -621,7 +631,28 @@ function stopPlay() {
   el.play.textContent = 'Play';
   el.play.setAttribute('aria-pressed', 'false');
   markNow(null, null);
+  lightBeat(-1);
   drawRoll();
+}
+
+// ---------- metronome ----------
+function renderMode() {
+  for (const b of el.mode.querySelectorAll('[data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === state.mode));
+  el.play.closest('.transport').classList.toggle('metronome-mode', state.mode === 'metronome');
+  lightBeat(-1);
+}
+
+function lightBeat(i) {
+  const n = Math.ceil(track.barLen - 1e-6);
+  if (el.beatDots.children.length !== n) {
+    el.beatDots.innerHTML = '';
+    for (let k = 0; k < n; k++) {
+      const d = document.createElement('span');
+      d.textContent = k + 1;
+      el.beatDots.appendChild(d);
+    }
+  }
+  [...el.beatDots.children].forEach((d, k) => d.classList.toggle('on', k === i));
 }
 
 function markNow(step, bar) {
@@ -635,6 +666,11 @@ let lastMark = '';
 function frame() {
   if (!play.on) return;
   const beat = beatAt(engine.ctx.currentTime);
+  if (state.mode === 'metronome') {
+    lightBeat(beat >= 0 ? Math.floor(mod(beat, track.barLen) + 1e-6) : -1);
+    play.raf = requestAnimationFrame(frame);
+    return;
+  }
   const L = track.loopLen;
   if (!state.loop && beat > L + 0.5) { stopPlay(); return; }
   if (beat >= 0) {
@@ -762,6 +798,14 @@ function wire() {
     state.cells = defaultCells(barLen(), state.sub);
     changed({ full: true });
   });
+  el.mode.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mode]');
+    if (!b || b.dataset.mode === state.mode) return;
+    if (play.on) stopPlay();
+    state.mode = b.dataset.mode;
+    renderMode();
+    persist();
+  });
   el.loop.addEventListener('change', () => { state.loop = el.loop.checked; persist(); });
   el.countIn.addEventListener('change', () => { state.countIn = el.countIn.checked; persist(); });
   el.metro.addEventListener('change', () => { state.metro = el.metro.checked; persist(); });
@@ -854,7 +898,7 @@ function wire() {
     changed();
   });
 
-  for (const [id, key] of [['vGuitar', 'guitar'], ['vBass', 'bass'], ['vMelody', 'melody']]) {
+  for (const [id, key] of [['vGuitar', 'guitar'], ['vBass', 'bass'], ['vMelody', 'melody'], ['vClick', 'click']]) {
     el[id].addEventListener('input', () => { state.vol[key] = +el[id].value; applyVolumes(); persist(); });
   }
 }
