@@ -27,6 +27,8 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 ## What it does
 
+**Song library.** 19 common bluegrass jam songs, gospel songs, fiddle tunes and a waltz (chords only, no lyrics). One tap loads the chart, key, tempo, time signature and strum pattern; Undo puts back what you had. Charts follow the usual jam versions (mostly as charted in the Idaho Bluegrass Association's jam notes) and stay editable. Add songs in `src/library.js`; `npm test` checks every chart.
+
 **Strum pattern editor.** One bar on a beat grid (eighth or sixteenth notes). Paint each step with a root bass, fifth bass, chuck, down strum, up strum, chop or rest. Presets cover boom-chuck, boom-chuck-a, boom-strum, mandolin-style chop, and waltz and 2/4 versions. Swing and looseness sliders shape the feel. Save patterns in your browser or copy a share link.
 
 **Bass runs.** At chord changes the last beat can turn into a two-note stepwise run into the next chord (every change, or every other one).
@@ -71,6 +73,7 @@ Guitar recordings in `samples/guitar/` come from the FluidR3 GM soundfont by Fra
 index.html, styles.css
 src/music.js     chords, voicings, bass notes, key and chord detection
 src/song.js      chart parsing, presets, pattern to timed events
+src/library.js   built-in song library (chord charts, keys, tempos, patterns)
 src/chart-edit.js chord palette and drag-and-drop chart edits
 src/parsers.js   tab, ABC, MusicXML/MXL and MIDI importers
 src/audio.js     Web Audio: sampled guitar, Karplus-Strong fallback, fiddle, chop, click, reverb

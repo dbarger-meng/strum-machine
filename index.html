@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
 <header class="masthead">
@@ -67,6 +67,22 @@
       <label><input id="metro" type="checkbox"> Click</label>
     </div>
   </section>
+
+  <details class="card fold" id="libraryFold">
+    <summary class="card-head">
+      <h2 id="h-library">Song library</h2>
+      <span id="librarySummary" class="fold-note"></span>
+    </summary>
+    <div class="row library-tools">
+      <label class="field library-search">
+        <span>Find a song</span>
+        <input id="librarySearch" type="search" placeholder="Title or key" autocomplete="off">
+      </label>
+      <div id="libraryKinds" class="segmented" role="radiogroup" aria-label="Show"></div>
+    </div>
+    <ul id="libraryList" class="library-list"></ul>
+    <p id="libraryMsg" class="msg" role="status"></p>
+  </details>
 
   <details class="card fold" id="patternFold">
     <summary class="card-head">
@@ -225,6 +241,6 @@
   <p>Everything stays on your device. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>; other sounds are synthesized in your browser.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=6"></script>
+<script type="module" src="src/app.js?v=8"></script>
 </body>
 </html>

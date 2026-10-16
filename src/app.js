@@ -1,15 +1,16 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=6';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=6';
+import { AudioEngine } from './audio.js?v=8';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=8';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=6';
-import { parseAny } from './parsers.js?v=6';
+} from './song.js?v=8';
+import { KINDS, LIBRARY } from './library.js?v=8';
+import { parseAny } from './parsers.js?v=8';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=6';
+} from './chart-edit.js?v=8';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -36,6 +37,8 @@ const state = {
   strumOn: true,
   vol: { guitar: 80, bass: 90, melody: 60, click: 40 },
   mode: 'band', // 'band' plays the chart; 'metronome' plays only the click
+  songId: null, // last song loaded from the library
+  libraryKind: 'All',
   paletteKey: 7,
   paletteType: 'key', // 'key' (each chord as it falls in the key) or a chord type for every chip
   placing: null, // chord name picked by tapping a chip, placed by tapping bars
@@ -52,7 +55,7 @@ const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
 const FOLDS = 'strumstudio.open';
 const INSTALL_HINT = 'strumstudio.installHint';
-const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode'];
+const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode', 'songId'];
 let saveTimer = null;
 function persist() {
   clearTimeout(saveTimer);
@@ -67,6 +70,7 @@ function restore(obj) {
   if (!state.vol || typeof state.vol !== 'object') state.vol = {};
   state.vol = { guitar: 80, bass: 90, melody: 60, click: 40, ...state.vol };
   if (state.mode !== 'metronome') state.mode = 'band';
+  if (!LIBRARY.some((x) => x.id === state.songId)) state.songId = null;
   if (state.paletteType !== 'key' && !CHORD_TYPES.some((t) => t.id === state.paletteType)) state.paletteType = 'key';
   const n = Math.round(barLen() * state.sub);
   if (!Array.isArray(state.cells) || state.cells.length !== n || state.cells.some((c) => !(c in CELLS))) state.cells = defaultCells(barLen(), state.sub);
@@ -472,12 +476,130 @@ function wireChart() {
   });
 }
 
+// ---------- song library ----------
+let undoLoad = null;
+
+function renderLibrary() {
+  if (!el.libraryKinds.children.length) {
+    for (const k of ['All', ...KINDS]) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.dataset.kind = k;
+      b.textContent = k;
+      el.libraryKinds.appendChild(b);
+    }
+  }
+  for (const b of el.libraryKinds.children) b.setAttribute('aria-checked', String(b.dataset.kind === state.libraryKind));
+  const q = el.librarySearch.value.trim().toLowerCase();
+  const songs = LIBRARY.filter((x) => (state.libraryKind === 'All' || x.kind === state.libraryKind)
+    && (!q || x.title.toLowerCase().includes(q) || x.key.toLowerCase() === q));
+  el.libraryList.innerHTML = '';
+  for (const x of songs) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'song-row';
+    b.dataset.id = x.id;
+    if (x.id === state.songId) b.setAttribute('aria-current', 'true');
+    const title = document.createElement('span');
+    title.className = 'song-title';
+    title.textContent = x.title;
+    const meta = document.createElement('span');
+    meta.className = 'song-meta';
+    meta.textContent = `${x.key} · ${x.ts === '3/4' ? 'waltz' : x.ts} · ${x.tempo} bpm`;
+    b.append(title, meta);
+    if (x.note) {
+      const n = document.createElement('span');
+      n.className = 'song-note';
+      n.textContent = x.note;
+      b.appendChild(n);
+    }
+    li.appendChild(b);
+    el.libraryList.appendChild(li);
+  }
+  if (!songs.length) {
+    const li = document.createElement('li');
+    li.className = 'hint';
+    li.textContent = 'No songs match.';
+    el.libraryList.appendChild(li);
+  }
+  const current = LIBRARY.find((x) => x.id === state.songId);
+  el.librarySummary.textContent = current ? `Last loaded: ${current.title}` : `${LIBRARY.length} songs and fiddle tunes`;
+}
+
+function snapshot() {
+  return { saved: JSON.parse(JSON.stringify(Object.fromEntries(PERSIST.map((k) => [k, state[k]])))), melody: state.melody };
+}
+
+function restoreSnapshot(snap) {
+  Object.assign(state, snap.saved);
+  state.melody = snap.melody;
+  el.melodyPanel.hidden = !state.melody;
+  if (play.on) stopPlay();
+  syncControls();
+  changed({ full: true });
+  renderLibrary();
+}
+
+function loadSong(id) {
+  const x = LIBRARY.find((s) => s.id === id);
+  if (!x) return;
+  undoLoad = snapshot();
+  if (play.on) stopPlay();
+  state.ts = x.ts;
+  state.tempo = x.tempo;
+  state.transpose = 0;
+  state.chart = x.chart;
+  state.paletteKey = parseChord(x.key).pc;
+  state.paletteType = 'key';
+  state.placing = null;
+  state.mode = 'band';
+  const preset = presetsFor(barLen()).find((p) => p.id === x.preset) || presetsFor(barLen())[0];
+  state.cells = resampleCells(preset.cells, 2, state.sub);
+  state.melody = null;
+  el.melodyPanel.hidden = true;
+  el.tuneSummary.textContent = 'Tab, ABC, MusicXML or MIDI';
+  state.songId = x.id;
+  syncControls();
+  changed({ full: true });
+  renderLibrary();
+  el.libraryMsg.innerHTML = '';
+  el.libraryMsg.append(`Loaded ${x.title} in ${x.key} at ${x.tempo} bpm. Press Play, or use Key shift to change key. `);
+  const undo = document.createElement('button');
+  undo.type = 'button';
+  undo.className = 'quiet';
+  undo.textContent = 'Undo';
+  undo.addEventListener('click', () => {
+    if (!undoLoad) return;
+    restoreSnapshot(undoLoad);
+    undoLoad = null;
+    el.libraryMsg.textContent = 'Back to your previous chart.';
+  });
+  el.libraryMsg.appendChild(undo);
+}
+
+function wireLibrary() {
+  el.libraryKinds.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-kind]');
+    if (!b) return;
+    state.libraryKind = b.dataset.kind;
+    renderLibrary();
+  });
+  el.librarySearch.addEventListener('input', renderLibrary);
+  el.libraryList.addEventListener('click', (e) => {
+    const b = e.target.closest('.song-row');
+    if (b) loadSong(b.dataset.id);
+  });
+  renderLibrary();
+}
+
 // ---------- folds ----------
 function wireFolds() {
   let open = {};
   try { open = JSON.parse(localStorage.getItem(FOLDS)) || {}; } catch (e) { /* none */ }
-  for (const id of ['patternFold', 'tuneFold']) {
-    el[id].open = !!open[id];
+  for (const id of ['libraryFold', 'patternFold', 'tuneFold']) {
+    el[id].open = id in open ? !!open[id] : id === 'libraryFold';
     el[id].addEventListener('toggle', () => {
       open[id] = el[id].open;
       try { localStorage.setItem(FOLDS, JSON.stringify(open)); } catch (e) { /* storage unavailable */ }
@@ -945,6 +1067,7 @@ function init() {
   wire();
   wireChart();
   wireFolds();
+  wireLibrary();
   wireInstall();
   engine.preload();
   changed({ full: true });
