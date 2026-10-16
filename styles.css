@@ -59,7 +59,7 @@ body {
 }
 
 main, footer { max-width: 960px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
-main { display: grid; gap: 16px; padding-top: 16px; padding-bottom: 24px; }
+main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 16px; padding-bottom: 24px; }
 footer { padding-bottom: calc(32px + env(safe-area-inset-bottom)); color: var(--ink-soft); font-size: 0.9rem; }
 footer a { color: inherit; }
 
@@ -177,6 +177,31 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
 .fold[open] > summary::before { transform: rotate(45deg) translate(-2px, -2px); }
 .fold-note { color: var(--ink-soft); font-size: 0.92rem; }
 .pattern-opts { margin-bottom: 14px; }
+
+/* ---- song library ---- */
+.library-tools { margin-bottom: 12px; align-items: flex-end; }
+.library-search input {
+  width: min(260px, 100%); padding: 7px 8px; font: inherit; color: var(--ink);
+  background: #fff; border: 1px solid var(--line); border-radius: 4px;
+}
+.library-list {
+  list-style: none; margin: 0; padding: 0; max-height: 360px; overflow-y: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px;
+}
+.song-row {
+  width: 100%; height: 100%; display: grid; gap: 2px; justify-items: start; align-content: start; text-align: left;
+  padding: 8px 10px; background: #fff; color: var(--ink); border: 1px solid var(--line);
+  border-left: 4px solid var(--line); border-radius: 3px;
+}
+.song-row:hover { background: #f6f7f2; border-left-color: var(--ink-soft); }
+.song-row[aria-current="true"] { border-left-color: var(--brass); background: #f6edd8; }
+.song-title { font: 700 1rem var(--slab); }
+.song-meta { font-size: 0.82rem; color: var(--ink-soft); }
+.song-note { font-size: 0.8rem; color: var(--ink-soft); font-style: italic; }
+#libraryMsg button { margin-left: 6px; padding: 3px 10px; }
+#libraryKinds { flex-wrap: nowrap; overflow-x: auto; width: auto; max-width: 100%; min-width: 0; }
+.library-tools > * { min-width: 0; max-width: 100%; }
+#libraryKinds button { white-space: nowrap; }
 
 /* ---- chart ---- */
 .chord-tools { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 18px; }
