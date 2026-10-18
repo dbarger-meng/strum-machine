@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 // Every local asset URL carries the same ?v= stamp (see scripts/bump-version.mjs),
 // so a release never mixes a new page with old cached code.
 test('local asset URLs all carry the same version stamp', () => {
-  const files = ['index.html', ...readdirSync('src').filter((f) => f.endsWith('.js')).map((f) => `src/${f}`)];
+  const files = [...readdirSync('.').filter((f) => f.endsWith('.html')), ...readdirSync('src').filter((f) => f.endsWith('.js')).map((f) => `src/${f}`)];
   const versions = new Set();
   for (const f of files) {
     const text = readFileSync(f, 'utf8');

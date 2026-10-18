@@ -37,6 +37,8 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Metronome.** Switch the transport from Band to Metronome to hear just a click at the current tempo and time signature, accented on beat one, with lights showing the beat. It needs no chords. (In Band mode, the Click box adds the same click under the music.) Its volume is in Mix.
 
+**Fretboard trainer.** A second page (`fretboard.html`, linked at the top) shows a note on a treble staff; tap where it is played on the neck. It reads like guitar sheet music, an octave above sounding pitch (written middle C is the A string, 3rd fret). Settings choose the frets (open position to 15th), the strings, naturals or sharps and flats, and whether any octave counts. It keeps a first-try score, a streak and your best streak.
+
 **Load a tune.** Drop a file or paste text:
 
 | Format | Notes |
@@ -65,6 +67,8 @@ Icons are drawn in `icons/icon.svg`; `node scripts/make-icons.mjs` regenerates t
 
 ## Credits
 
+Notation symbols in `src/notation-glyphs.js` are outlines derived from the Bravura font by Steinberg Media Technologies GmbH, used under the SIL Open Font License 1.1 (`licenses/Bravura-OFL.txt`); that file stays under the same license.
+
 Guitar recordings in `samples/guitar/` come from the FluidR3 GM soundfont by Frank Wen, as rendered to MP3 by [gleitz/midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts), and are used under the [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/) license.
 
 ## Layout
@@ -74,6 +78,10 @@ index.html, styles.css
 src/music.js     chords, voicings, bass notes, key and chord detection
 src/song.js      chart parsing, presets, pattern to timed events
 src/library.js   built-in song library (chord charts, keys, tempos, patterns)
+fretboard.html   fretboard trainer page
+src/fretboard.js trainer logic: positions, staff spelling, answer checking
+src/trainer.js   trainer page: staff drawing, fretboard, scoring, settings
+src/notation-glyphs.js  clef, notehead and accidental outlines (Bravura, OFL)
 src/chart-edit.js chord palette and drag-and-drop chart edits
 src/parsers.js   tab, ABC, MusicXML/MXL and MIDI importers
 src/audio.js     Web Audio: sampled guitar, Karplus-Strong fallback, fiddle, chop, click, reverb

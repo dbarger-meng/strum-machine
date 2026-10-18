@@ -12,7 +12,7 @@ test('service worker precaches every source file and icon', () => {
   assert.deepEqual(listed('ICONS').sort(), readdirSync('icons').sort());
   const samples = /const SAMPLES = (\[[^\]]*\])/.exec(sw)[1];
   assert.deepEqual(JSON.parse(samples.replace(/'/g, '"')).map((n) => `${n}.mp3`).sort(), readdirSync('samples/guitar').sort());
-  for (const f of ['./', './index.html', './manifest.webmanifest', './styles.css?v=']) assert.ok(sw.includes(`'${f}`) || sw.includes(`\`${f}`), `${f} is precached`);
+  for (const f of ['./', ...readdirSync('.').filter((x) => x.endsWith('.html')).map((x) => `./${x}`), './manifest.webmanifest', './styles.css?v=']) assert.ok(sw.includes(`'${f}`) || sw.includes(`\`${f}`), `${f} is precached`);
 });
 
 test('service worker version matches the asset stamps', () => {
