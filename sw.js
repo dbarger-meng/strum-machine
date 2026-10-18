@@ -1,12 +1,12 @@
 // Offline support. Every shipped file is cached on install so the app opens with no signal.
 // ASSET_VERSION matches the ?v= stamps in index.html and src/; `npm run bump` raises both.
-const ASSET_VERSION = 8;
+const ASSET_VERSION = 10;
 const CACHE = `strum-studio-v${ASSET_VERSION}`;
-const SRC = ['app.js', 'audio.js', 'chart-edit.js', 'library.js', 'music.js', 'parsers.js', 'song.js'];
+const SRC = ['app.js', 'audio.js', 'chart-edit.js', 'fretboard.js', 'library.js', 'music.js', 'notation-glyphs.js', 'parsers.js', 'song.js', 'trainer.js'];
 const ICONS = ['apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'icon.svg'];
 const SAMPLES = ['Bb2', 'Bb3', 'Bb4', 'Bb5', 'Db3', 'Db4', 'Db5', 'Db6', 'E2', 'E3', 'E4', 'E5', 'G2', 'G3', 'G4', 'G5'].map((n) => `${n}.mp3`);
 const PRECACHE = [
-  './', './index.html', './manifest.webmanifest', `./styles.css?v=${ASSET_VERSION}`,
+  './', './index.html', './fretboard.html', './manifest.webmanifest', `./styles.css?v=${ASSET_VERSION}`,
   ...SRC.map((f) => `./src/${f}?v=${ASSET_VERSION}`),
   ...ICONS.map((f) => `./icons/${f}`),
   ...SAMPLES.map((f) => `./samples/guitar/${f}`),

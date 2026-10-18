@@ -3,7 +3,7 @@
 // Run `npm run bump` whenever any shipped file changes, before committing.
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 
-const files = ['index.html', ...readdirSync('src').filter((f) => f.endsWith('.js')).map((f) => `src/${f}`)];
+const files = [...readdirSync('.').filter((f) => f.endsWith('.html')), ...readdirSync('src').filter((f) => f.endsWith('.js')).map((f) => `src/${f}`)];
 const ASSET = /((?:from |import\()'\.\/[\w-]+\.js|(?:href|src)="(?:src\/)?[\w-]+\.(?:css|js))(\?v=\d+)?(['"])/g;
 
 let current = 0;

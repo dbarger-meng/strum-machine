@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fretboard Trainer · Strum Studio</title>
+  <meta name="description" content="Learn the guitar fretboard: read a note on the treble staff and find it on the neck.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b2b44">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Strum Studio">
+  <link rel="stylesheet" href="styles.css?v=10">
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <h1>Strum Studio</h1>
+      <p>Read the note on the staff, then find it on the fretboard.</p>
+    </div>
+  </div>
+  <nav class="site-nav" aria-label="Pages">
+    <a href="./">Play along</a>
+    <a href="fretboard.html" aria-current="page">Fretboard trainer</a>
+  </nav>
+</header>
+
+<main>
+  <section class="card trainer" aria-labelledby="h-find">
+    <div class="card-head">
+      <h2 id="h-find">Find this note</h2>
+      <p id="score" class="hint" role="status"></p>
+    </div>
+    <div class="trainer-top">
+      <div class="staff-box">
+        <svg id="staff" viewBox="0 0 220 172" role="img" aria-label="Note on a treble staff"></svg>
+        <p id="noteName" class="note-name" hidden></p>
+      </div>
+      <div class="trainer-side">
+        <p id="feedback" class="feedback" role="status" aria-live="polite">Tap the fretboard where this note is played.</p>
+        <div class="row">
+          <button id="showMe" type="button" class="quiet">Show me</button>
+          <button id="skip" type="button" class="quiet">Skip</button>
+        </div>
+      </div>
+    </div>
+    <div class="fb-wrap">
+      <div id="fretboard" class="fb" role="group" aria-label="Guitar fretboard, high e string at the top"></div>
+    </div>
+    <p class="hint rotate-tip">Tip: turn your phone sideways for a bigger fretboard.</p>
+    <p class="hint">Guitar music is written an octave above how it sounds, so this reads like guitar sheet music and tab books: written middle C is the A string, 3rd fret.</p>
+  </section>
+
+  <details class="card fold" id="trainerSettings">
+    <summary class="card-head">
+      <h2>Settings</h2>
+      <span id="settingsSummary" class="fold-note"></span>
+    </summary>
+    <div class="row trainer-opts">
+      <label class="field">
+        <span>Frets</span>
+        <select id="fretRange">
+          <option value="4">Open position (0 to 4)</option>
+          <option value="7">Frets 0 to 7</option>
+          <option value="12">Frets 0 to 12</option>
+          <option value="15">Frets 0 to 15</option>
+        </select>
+      </label>
+      <div class="field">
+        <span id="stringsLabel">Strings</span>
+        <div id="stringPick" class="segmented" role="group" aria-labelledby="stringsLabel"></div>
+      </div>
+    </div>
+    <div class="checks trainer-checks">
+      <label><input id="accidentals" type="checkbox"> Include sharps and flats</label>
+      <label><input id="anyOctave" type="checkbox"> Any octave counts</label>
+      <label><input id="showName" type="checkbox"> Show the note name</label>
+      <label><input id="sound" type="checkbox" checked> Play the note I tap</label>
+    </div>
+    <div class="row">
+      <button id="resetScore" type="button" class="quiet">Reset score</button>
+    </div>
+  </details>
+</main>
+
+<footer>
+  <p>Everything stays on your device. Notation symbols from the Bravura font by Steinberg, used under the <a href="licenses/Bravura-OFL.txt">SIL Open Font License</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+</footer>
+
+<script type="module" src="src/trainer.js?v=10"></script>
+</body>
+</html>
