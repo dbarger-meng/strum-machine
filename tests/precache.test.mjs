@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 // Offline use depends on sw.js caching every shipped file. Adding a module or icon without
 // listing it here would break the installed app with no signal, so fail loudly instead.
 const sw = readFileSync('sw.js', 'utf8');
-const listed = (name) => JSON.parse(new RegExp(`const ${name} = (\\[[^\\]]*\\]);`).exec(sw)[1].replace(/'/g, '"'));
+const listed = (name) => JSON.parse(new RegExp(`const ${name} = (\\[[^\\]]*\\]);`).exec(sw)[1].replace(/'/g, '"').replace(/,\s*\]$/, ']'));
 
 test('service worker precaches every source file and icon', () => {
   assert.deepEqual(listed('SRC').sort(), readdirSync('src').filter((f) => f.endsWith('.js')).sort());

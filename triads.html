@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Triad Shapes · Strum Studio</title>
+  <meta name="description" content="Every major, minor, diminished and augmented triad shape on three adjacent strings, all the way up the neck.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b2b44">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Strum Studio">
+  <link rel="stylesheet" href="styles.css?v=12">
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <h1>Strum Studio</h1>
+      <p>Three-note chord shapes on three strings, all the way up the neck.</p>
+    </div>
+  </div>
+  <nav class="site-nav" aria-label="Pages">
+    <a href="./">Play along</a>
+    <a href="fretboard.html">Fretboard trainer</a>
+    <a href="triads.html" aria-current="page">Triads</a>
+    <a href="scales.html">Scales</a>
+  </nav>
+</header>
+
+<main>
+  <section class="card" aria-labelledby="h-triads">
+    <div class="card-head">
+      <h2 id="h-triads">Triad shapes</h2>
+      <p id="triadInfo" class="hint"></p>
+    </div>
+    <div class="row shape-opts">
+      <label class="field">
+        <span>Root</span>
+        <select id="root"></select>
+      </label>
+      <div class="field">
+        <span id="qualityLabel">Type</span>
+        <div id="quality" class="segmented" role="radiogroup" aria-labelledby="qualityLabel"></div>
+      </div>
+      <div class="field">
+        <span id="setLabel">Strings</span>
+        <div id="stringSet" class="segmented" role="radiogroup" aria-labelledby="setLabel"></div>
+      </div>
+      <div class="field">
+        <span id="labelLabel">Show</span>
+        <div id="labels" class="segmented" role="radiogroup" aria-labelledby="labelLabel"></div>
+      </div>
+    </div>
+    <div class="fb-wrap">
+      <div id="neck" class="fb" role="img" aria-label="Triad shapes on the neck"></div>
+    </div>
+    <p class="legend"><span><b class="mark root">R</b> Root</span><span><b class="mark t1">3</b> Third</span><span><b class="mark t2">5</b> Fifth</span></p>
+    <p class="hint rotate-tip">Tip: turn your phone sideways to see more of the neck.</p>
+    <h3 class="sub">Shapes, low to high</h3>
+    <p class="hint">Tap a shape to pick it out on the neck and hear it.</p>
+    <ul id="shapeList" class="shape-list"></ul>
+  </section>
+</main>
+
+<footer>
+  <p>Everything stays on your device. Notation symbols from the Bravura font by Steinberg, used under the <a href="licenses/Bravura-OFL.txt">SIL Open Font License</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+</footer>
+
+<script type="module" src="src/triads-page.js?v=12"></script>
+</body>
+</html>
