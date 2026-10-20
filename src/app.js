@@ -1,16 +1,16 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=17';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=17';
+import { AudioEngine } from './audio.js?v=19';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=19';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=17';
-import { KINDS, LIBRARY } from './library.js?v=17';
-import { parseAny } from './parsers.js?v=17';
+} from './song.js?v=19';
+import { KINDS, LIBRARY } from './library.js?v=19';
+import { parseAny } from './parsers.js?v=19';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=17';
+} from './chart-edit.js?v=19';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });

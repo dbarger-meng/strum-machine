@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rhythm Dictation · Strum Studio</title>
+  <meta name="description" content="Rhythm dictation: hear a four-bar melody in 4/4 or 6/8 and write down its rhythm.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1b2b44">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Strum Studio">
+  <link rel="stylesheet" href="styles.css?v=19">
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <h1>Strum Studio</h1>
+      <p>Hear four bars, then write down the rhythm.</p>
+    </div>
+  </div>
+  <nav class="site-nav" aria-label="Pages">
+    <a href="./">Play along</a>
+    <a href="fretboard.html">Fretboard trainer</a>
+    <a href="intervals.html">Intervals</a>
+    <a href="rhythm.html" aria-current="page">Rhythm</a>
+    <a href="triads.html">Triads</a>
+    <a href="scales.html">Scales</a>
+  </nav>
+</header>
+
+<main>
+  <section class="card" aria-labelledby="h-rhythm">
+    <div class="card-head">
+      <h2 id="h-rhythm">Rhythm dictation</h2>
+      <p id="score" class="hint" role="status"></p>
+    </div>
+    <div class="row shape-opts">
+      <div class="field">
+        <span id="meterLabel">Meter</span>
+        <div id="meter" class="segmented" role="radiogroup" aria-labelledby="meterLabel"></div>
+      </div>
+      <label class="field slider">
+        <span id="tempoLabel">Tempo</span>
+        <input id="tempo" type="range" min="40" max="140" value="72" aria-describedby="tempoLabel">
+      </label>
+      <label class="inline"><input id="clickAlong" type="checkbox"> Click along</label>
+    </div>
+    <div class="row rhythm-actions">
+      <button id="play" type="button" class="primary">Play</button>
+      <button id="check" type="button" class="quiet">Check</button>
+      <button id="newRhythm" type="button" class="quiet">New rhythm</button>
+    </div>
+    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+    <div id="bars" class="rhythm-bars"></div>
+    <div class="rhythm-entry">
+      <p class="hint">Tap note values to write the rhythm into the selected bar. Tap a bar to select it.</p>
+      <div id="values" class="value-buttons" role="group" aria-label="Note values"></div>
+      <div class="row">
+        <button id="undo" type="button" class="quiet">Undo</button>
+        <button id="clearBar" type="button" class="quiet">Clear bar</button>
+      </div>
+    </div>
+  </section>
+
+  <details class="card fold" id="rhythmSettings">
+    <summary class="card-head">
+      <h2>Settings</h2>
+      <span id="settingsSummary" class="fold-note"></span>
+    </summary>
+    <div class="field">
+      <span id="useLabel">Note values to use</span>
+      <div id="useValues" class="segmented wrap" role="group" aria-labelledby="useLabel"></div>
+    </div>
+    <p class="hint">6/8 is felt in two beats of three eighth notes, so its values are the dotted half (a full bar), dotted quarter (one beat), quarter, eighth and 16th. Triplets are a 4/4 rhythm. The tempo is the beat: a quarter note in 4/4, a dotted quarter in 6/8.</p>
+    <div class="checks trainer-checks">
+      <label><input id="countIn" type="checkbox" checked> Count in one bar</label>
+    </div>
+    <div class="row"><button id="resetScore" type="button" class="quiet">Reset score</button></div>
+  </details>
+</main>
+
+<footer>
+  <p>Everything stays on your device. Notation symbols from the Bravura font by Steinberg, used under the <a href="licenses/Bravura-OFL.txt">SIL Open Font License</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+</footer>
+
+<script type="module" src="src/rhythm-page.js?v=19"></script>
+</body>
+</html>
