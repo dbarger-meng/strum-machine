@@ -1,7 +1,7 @@
 // Triad and scale shapes on the guitar neck, with key-correct note spelling.
 // Strings are indices into OPEN_STRINGS (0 = low E ... 5 = high e).
 
-import { OPEN_STRINGS } from './music.js?v=17';
+import { OPEN_STRINGS } from './music.js?v=19';
 
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];

@@ -419,3 +419,38 @@ h3.sub { margin: 16px 0 2px; font: 700 1.05rem var(--slab); }
 @media (max-width: 640px) {
   .interval-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---- rhythm dictation ---- */
+.rhythm-actions { margin: 4px 0 8px; }
+.rhythm-bars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 8px 0 14px; }
+.rhythm-bar {
+  padding: 6px 8px 4px; background: #fff; border: 2px solid var(--line); border-radius: 6px; cursor: pointer;
+}
+.rhythm-bar.selected { border-color: var(--brass); box-shadow: 0 0 0 3px #f6edd8; }
+.rhythm-bar.now { background: #f6edd8; }
+.rhythm-bar.right { border-color: var(--down); cursor: default; }
+.rhythm-bar.wrong { border-color: var(--chop); cursor: default; }
+.rhythm-bar-head { display: flex; justify-content: space-between; align-items: center; font: 600 0.85rem var(--sans); color: var(--ink-soft); }
+.rhythm-bar.right .rhythm-bar-head span { color: var(--down); }
+.rhythm-bar.wrong .rhythm-bar-head span { color: var(--chop); }
+.bar-play { padding: 3px 8px; font-size: 0.8rem; }
+.rhythm-svg { display: block; width: 100%; height: auto; }
+.rhythm-svg.answer .glyph, .rhythm-svg.answer .beam { fill: var(--chop); }
+.rhythm-svg.answer .stem { stroke: var(--chop); }
+.answer-cap { display: block; margin-top: 2px; font-size: 0.78rem; color: var(--chop); font-weight: 600; }
+.stem { stroke: var(--ink); stroke-width: 1.2; }
+.beam { fill: var(--ink); }
+.bar-line { stroke: var(--ink); stroke-width: 1.4; }
+.value-buttons { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; margin: 8px 0 10px; }
+.value-btn {
+  display: grid; justify-items: center; gap: 2px; padding: 4px 6px 6px; background: #fff; color: var(--ink);
+  border: 1px solid var(--ink-soft); border-radius: 4px; font: 600 0.85rem var(--sans);
+}
+.value-btn:hover { background: #f6f7f2; }
+.value-icon { width: 44px; height: 52px; }
+.segmented.wrap { flex-wrap: wrap; }
+.segmented button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+@media (max-width: 640px) {
+  .rhythm-bars { grid-template-columns: minmax(0, 1fr); }
+  .value-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
