@@ -1,10 +1,10 @@
 // Fretboard trainer page: draw a note on a treble staff, let the player tap it on the neck.
 
-import { AudioEngine } from './audio.js?v=12';
-import { GLYPHS } from './notation-glyphs.js?v=12';
+import { AudioEngine } from './audio.js?v=14';
+import { GLYPHS } from './notation-glyphs.js?v=14';
 import {
-  STRINGS, positionsFor, spell, ledgerLines, nextQuestion, isCorrect, answersFor, noteLabel,
-} from './fretboard.js?v=12';
+  STRINGS, positionsFor, spell, ledgerLines, nextQuestion, answersFor, noteLabel, judgeTap, positionKey,
+} from './fretboard.js?v=14';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.fretboard';
@@ -15,6 +15,8 @@ const settings = { maxFret: 12, strings: [0, 1, 2, 3, 4, 5], accidentals: false,
 const stats = { right: 0, total: 0, streak: 0, best: 0 };
 let question = null;
 let missed = false;
+let targets = []; // every place the current note is played on the chosen strings and frets
+let found = new Set();
 let locked = false;
 let advanceTimer = null;
 
@@ -82,7 +84,9 @@ function drawFretboard() {
     for (let fret = 0; fret <= settings.maxFret; fret++) {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = `fb-pos${fret === 0 ? ' open' : ''}${settings.strings.includes(st.index) ? '' : ' off'}`;
+      const on = settings.strings.includes(st.index);
+      b.className = `fb-pos${fret === 0 ? ' open' : ''}${on ? '' : ' off'}`;
+      b.disabled = !on;
       b.style.setProperty('--gauge', `${1 + row * 0.5}px`);
       b.dataset.s = st.index;
       b.dataset.f = fret;
@@ -113,13 +117,19 @@ function renderScore() {
 function newQuestion() {
   clearTimeout(advanceTimer);
   question = nextQuestion({ positions: positions(), naturalsOnly: !settings.accidentals, prev: question });
+  targets = question ? answersFor(question, positions(), settings.anyOctave) : [];
+  found = new Set();
   missed = false;
   locked = false;
   clearMarks();
   drawStaff();
   $('feedback').className = 'feedback';
-  $('feedback').textContent = question ? 'Tap the fretboard where this note is played.' : 'No notes to find with these settings. Pick more strings or frets.';
+  $('feedback').textContent = !question ? 'No notes to find with these settings. Pick more strings or frets.'
+    : targets.length > 1 ? `Tap ${allOf(targets.length)} places this note is played.` : 'Tap the fretboard where this note is played.';
 }
+
+const progress = () => `${found.size} of ${targets.length} found`;
+const allOf = (n) => (n === 2 ? 'both' : `all ${n}`);
 
 function play(midi) {
   if (!settings.sound) return;
@@ -145,26 +155,39 @@ function tap(s, f) {
   play(midi);
   const c = cell(s, f);
   const flat = question.written.accidental === 'b';
-  if (isCorrect(question, { string: s, fret: f }, settings.anyOctave)) {
-    c.classList.add('hit');
-    $('feedback').className = 'feedback good';
-    $('feedback').textContent = missed ? `There it is: ${noteLabel(question.written)}.` : `Yes! ${noteLabel(question.written)}.`;
-    finish(!missed);
-    advanceTimer = setTimeout(newQuestion, 900);
-  } else {
+  const name = noteLabel(question.written);
+  const result = judgeTap(question, targets, found, { string: s, fret: f }, settings.anyOctave);
+  if (result === 'again') return;
+  if (result === 'wrong') {
     c.classList.add('miss');
     if (!missed) { missed = true; stats.streak = 0; renderScore(); }
     $('feedback').className = 'feedback bad';
-    $('feedback').textContent = `That's ${noteLabel(spell(midi + 12, flat))}. Try again.`;
+    $('feedback').textContent = `That's ${noteLabel(spell(midi + 12, flat))}. Try again${targets.length > 1 ? ` (${progress()})` : ''}.`;
+    return;
   }
+  c.classList.remove('miss');
+  c.classList.add('hit');
+  $('feedback').className = 'feedback good';
+  if (result === 'found') {
+    const left = targets.length - found.size;
+    $('feedback').textContent = `Yes, that's ${name}. ${left} more to find (${progress()}).`;
+    return;
+  }
+  const all = targets.length > 1 ? `${allOf(targets.length)} places for ${name}` : name;
+  $('feedback').textContent = missed ? `That's ${all}.` : `Yes! ${all[0].toUpperCase()}${all.slice(1)}.`;
+  finish(!missed);
+  advanceTimer = setTimeout(newQuestion, 1100);
 }
 
 function showMe() {
   if (!question || locked) return;
-  for (const p of answersFor(question, positions(), settings.anyOctave)) cell(p.string, p.fret).classList.add('answer');
+  const left = targets.filter((p) => !found.has(positionKey(p)));
+  for (const p of left) cell(p.string, p.fret).classList.add('answer');
   play(question.midi);
   $('feedback').className = 'feedback';
-  $('feedback').textContent = `${noteLabel(question.written)} is here. Next note in a moment.`;
+  $('feedback').textContent = targets.length > 1
+    ? `${noteLabel(question.written)} is in ${targets.length} places${found.size ? `; you found ${found.size}` : ''}. Next note in a moment.`
+    : `${noteLabel(question.written)} is here. Next note in a moment.`;
   finish(false);
   advanceTimer = setTimeout(newQuestion, 2200);
 }

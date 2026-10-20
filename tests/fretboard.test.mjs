@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  STRINGS, positionsFor, spell, staffStep, ledgerLines, nextQuestion, isCorrect, answersFor, noteLabel, isNatural,
+  STRINGS, positionsFor, spell, staffStep, ledgerLines, nextQuestion, isCorrect, answersFor, noteLabel, isNatural, judgeTap,
 } from '../src/fretboard.js';
 import { GLYPHS } from '../src/notation-glyphs.js';
 
@@ -60,4 +60,20 @@ test('questions use the chosen notes and answers are checked by pitch', () => {
 
 test('notation glyphs are present', () => {
   for (const k of ['gClef', 'noteheadWhole', 'accidentalSharp', 'accidentalFlat']) assert.ok(GLYPHS[k].d.length > 100, k);
+});
+
+test('every place a note is played must be found', () => {
+  const positions = positionsFor({ maxFret: 12 });
+  const q = { midi: 57 }; // A3: written A4, played in three places within frets 0-12
+  const targets = answersFor(q, positions);
+  assert.deepEqual(targets.map((p) => [p.string, p.fret]), [[1, 12], [2, 7], [3, 2]]);
+  const found = new Set();
+  assert.equal(judgeTap(q, targets, found, { string: 3, fret: 2 }), 'found');
+  assert.equal(judgeTap(q, targets, found, { string: 3, fret: 2 }), 'again');
+  assert.equal(judgeTap(q, targets, found, { string: 3, fret: 3 }), 'wrong');
+  assert.equal(judgeTap(q, targets, found, { string: 2, fret: 7 }), 'found');
+  assert.equal(judgeTap(q, targets, found, { string: 1, fret: 12 }), 'done');
+  // a note with only one place is done in one tap
+  const low = { midi: 40 };
+  assert.equal(judgeTap(low, answersFor(low, positions), new Set(), { string: 0, fret: 0 }), 'done');
 });
