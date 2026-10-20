@@ -338,6 +338,7 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
   .card.trainer { padding: 14px 10px; }
   .fb-pos span { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
   .fb-num { font-size: 0.7rem; }
+  .fb-pos.inlay::after { width: 10px; height: 10px; margin: -5px 0 0 -5px; }
 }
 @media (max-width: 640px) and (orientation: portrait) {
   .rotate-tip { display: block; margin-bottom: 6px; }
@@ -354,7 +355,7 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
 .fb-pos:hover { background-color: #e2d3b2; }
 .fb-pos.off { opacity: 0.4; cursor: not-allowed; }
 .fb-pos span {
-  position: absolute; z-index: 1; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  position: absolute; z-index: 2; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
   border-radius: 50%; display: none;
 }
 .fb-pos.hit span { display: block; background: var(--down); }
@@ -362,7 +363,12 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
 .fb-pos.answer span { display: block; background: var(--brass); box-shadow: 0 0 0 3px #f6edd8; }
 .fb-num { padding-top: 4px; text-align: center; font-size: 0.78rem; color: var(--ink-soft); line-height: 1.2; }
 .fb-num { overflow: hidden; }
-.fb-num i { display: block; font-style: normal; color: var(--ink); }
+/* Inlay dots sit on the edge between two strings, under the strings and the note marks. */
+.fb-pos.inlay::after {
+  content: ""; position: absolute; left: 50%; top: 100%; z-index: 1; pointer-events: none;
+  width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #c3b28c;
+}
+.fb-pos.off.inlay::after { opacity: 0.6; }
 .trainer-opts { margin-bottom: 12px; }
 .trainer-checks { margin-bottom: 12px; }
 #stringPick button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
@@ -376,7 +382,7 @@ button.primary { padding: 8px 16px; background: var(--ink); color: var(--paper);
   display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
   color: var(--paper); background: var(--ink); font: 700 0.72rem/1 var(--sans); white-space: nowrap;
 }
-.fb-pos .mark { position: absolute; left: 50%; top: 50%; margin: -14px 0 0 -14px; z-index: 1; }
+.fb-pos .mark { position: absolute; left: 50%; top: 50%; margin: -14px 0 0 -14px; z-index: 2; }
 .mark.root { background: var(--brass); }
 .mark.t1 { background: var(--fifth); }
 .mark.t2 { background: var(--down); }
