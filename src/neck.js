@@ -1,13 +1,14 @@
 // Draw a guitar neck with labelled dots, for the triad and scale pages.
 // Uses the same .fb grid styles as the fretboard trainer.
 
-import { STRINGS } from './fretboard.js?v=14';
+import { STRINGS } from './fretboard.js?v=17';
 
 /**
  * marks: [{ string, fret, label, cls }] where cls is a space-separated list of mark classes
- * (root, t1, t2, other, faint). onTap(mark) makes marked positions buttons.
+ * (root, t1, t2, other, faint, start, good, bad, ans). onTap(mark) makes marked positions
+ * buttons; with tapAll, every position is a button and onTap gets { string, fret } plus any mark.
  */
-export function renderNeck(el, { maxFret = 15, marks = [], onTap = null }) {
+export function renderNeck(el, { maxFret = 15, marks = [], onTap = null, tapAll = false }) {
   const at = new Map(marks.map((m) => [`${m.string}:${m.fret}`, m]));
   el.innerHTML = '';
   el.style.setProperty('--frets', maxFret);
@@ -18,12 +19,14 @@ export function renderNeck(el, { maxFret = 15, marks = [], onTap = null }) {
     el.appendChild(name);
     for (let fret = 0; fret <= maxFret; fret++) {
       const m = at.get(`${st.index}:${fret}`);
-      const c = document.createElement(m && onTap ? 'button' : 'div');
-      if (m && onTap) {
+      const tappable = onTap && (m || tapAll);
+      const c = document.createElement(tappable ? 'button' : 'div');
+      if (tappable) {
         c.type = 'button';
-        c.addEventListener('click', () => onTap(m));
+        c.addEventListener('click', () => onTap({ string: st.index, fret, ...m }));
+        c.setAttribute('aria-label', `${st.name} string, ${fret === 0 ? 'open' : `fret ${fret}`}`);
       }
-      c.className = `fb-pos${fret === 0 ? ' open' : ''}${m && onTap ? '' : ' static'}`;
+      c.className = `fb-pos${fret === 0 ? ' open' : ''}${tappable ? '' : ' static'}`;
       c.style.setProperty('--gauge', `${1 + row * 0.5}px`);
       if (m) {
         const dot = document.createElement('b');

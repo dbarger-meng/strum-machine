@@ -39,6 +39,8 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Fretboard trainer.** A second page (`fretboard.html`, linked at the top) shows a note on a treble staff; tap every place it is played on the neck (within the frets and strings you choose). It reads like guitar sheet music, an octave above sounding pitch (written middle C is the A string, 3rd fret). Settings choose the frets (open position to 15th), the strings, naturals or sharps and flats, and whether any octave counts. It keeps a first-try score, a streak and your best streak.
 
+**Intervals.** `intervals.html` has two drills. Find the interval: a note is marked on the neck and you tap the 5th, 3rd, octave and so on above it (every place it falls, if you like). Name the interval: two notes are marked and played, and you pick the interval. Common intervals or all of them, any fret range.
+
 **Triad shapes.** `triads.html` shows every major, minor, diminished and augmented triad on a set of three adjacent strings, up to the 15th fret, coloured by root, third and fifth. Tap a shape (root position, first or second inversion) to pick it out and hear it.
 
 **Scale shapes.** `scales.html` shows major, natural minor, major and minor pentatonic, blues, Mixolydian and Dorian scales across the whole neck or one position at a time (the five pentatonic boxes; three notes per string for seven-note scales), labelled by note or scale degree, with a Play button. Notes are spelled for the key.
@@ -86,6 +88,8 @@ fretboard.html   fretboard trainer page
 src/fretboard.js trainer logic: positions, staff spelling, answer checking
 src/trainer.js   trainer page: staff drawing, fretboard, scoring, settings
 src/notation-glyphs.js  clef, notehead and accidental outlines (Bravura, OFL)
+intervals.html   interval trainer page
+src/intervals.js interval names, spelling and questions; src/intervals-page.js runs the page
 triads.html, scales.html  triad and scale shape pages
 src/shapes.js    triad and scale shapes, positions and key-correct spelling
 src/neck.js      neck diagram with labelled dots, shared by the shape pages

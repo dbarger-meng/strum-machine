@@ -1,10 +1,10 @@
 // Fretboard trainer page: draw a note on a treble staff, let the player tap it on the neck.
 
-import { AudioEngine } from './audio.js?v=14';
-import { GLYPHS } from './notation-glyphs.js?v=14';
+import { AudioEngine } from './audio.js?v=17';
+import { GLYPHS } from './notation-glyphs.js?v=17';
 import {
   STRINGS, positionsFor, spell, ledgerLines, nextQuestion, answersFor, noteLabel, judgeTap, positionKey,
-} from './fretboard.js?v=14';
+} from './fretboard.js?v=17';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.fretboard';
