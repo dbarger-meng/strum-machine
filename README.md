@@ -37,7 +37,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Metronome.** Switch the transport from Band to Metronome to hear just a click at the current tempo and time signature, accented on beat one, with lights showing the beat. It needs no chords. (In Band mode, the Click box adds the same click under the music.) Its volume is in Mix.
 
-**Fretboard trainer.** A second page (`fretboard.html`, linked at the top) shows a note on a treble staff; tap where it is played on the neck. It reads like guitar sheet music, an octave above sounding pitch (written middle C is the A string, 3rd fret). Settings choose the frets (open position to 15th), the strings, naturals or sharps and flats, and whether any octave counts. It keeps a first-try score, a streak and your best streak.
+**Fretboard trainer.** A second page (`fretboard.html`, linked at the top) shows a note on a treble staff; tap every place it is played on the neck (within the frets and strings you choose). It reads like guitar sheet music, an octave above sounding pitch (written middle C is the A string, 3rd fret). Settings choose the frets (open position to 15th), the strings, naturals or sharps and flats, and whether any octave counts. It keeps a first-try score, a streak and your best streak.
 
 **Triad shapes.** `triads.html` shows every major, minor, diminished and augmented triad on a set of three adjacent strings, up to the 15th fret, coloured by root, third and fifth. Tap a shape (root position, first or second inversion) to pick it out and hear it.
 
