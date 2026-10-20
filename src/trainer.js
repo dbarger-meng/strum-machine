@@ -1,10 +1,10 @@
 // Fretboard trainer page: draw a note on a treble staff, let the player tap it on the neck.
 
-import { AudioEngine } from './audio.js?v=19';
-import { GLYPHS } from './notation-glyphs.js?v=19';
+import { AudioEngine } from './audio.js?v=20';
+import { GLYPHS } from './notation-glyphs.js?v=20';
 import {
-  STRINGS, positionsFor, spell, ledgerLines, nextQuestion, answersFor, noteLabel, judgeTap, positionKey,
-} from './fretboard.js?v=19';
+  STRINGS, positionsFor, spell, ledgerLines, nextQuestion, answersFor, noteLabel, judgeTap, positionKey, hasInlay,
+} from './fretboard.js?v=20';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.fretboard';
@@ -85,7 +85,7 @@ function drawFretboard() {
       const b = document.createElement('button');
       b.type = 'button';
       const on = settings.strings.includes(st.index);
-      b.className = `fb-pos${fret === 0 ? ' open' : ''}${on ? '' : ' off'}`;
+      b.className = `fb-pos${fret === 0 ? ' open' : ''}${on ? '' : ' off'}${hasInlay(st.index, fret) ? ' inlay' : ''}`;
       b.disabled = !on;
       b.style.setProperty('--gauge', `${1 + row * 0.5}px`);
       b.dataset.s = st.index;
@@ -99,8 +99,7 @@ function drawFretboard() {
   for (let fret = 0; fret <= settings.maxFret; fret++) {
     const n = document.createElement('span');
     n.className = 'fb-num';
-    const dots = fret === 12 ? '●●' : [3, 5, 7, 9, 15].includes(fret) ? '●' : '';
-    n.innerHTML = `${fret}${dots ? `<i>${dots}</i>` : ''}`;
+    n.textContent = fret;
     fb.appendChild(n);
   }
 }

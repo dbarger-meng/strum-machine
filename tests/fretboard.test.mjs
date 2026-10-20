@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  STRINGS, positionsFor, spell, staffStep, ledgerLines, nextQuestion, isCorrect, answersFor, noteLabel, isNatural, judgeTap,
+  STRINGS, positionsFor, spell, staffStep, ledgerLines, nextQuestion, isCorrect, answersFor, noteLabel, isNatural, judgeTap, hasInlay,
 } from '../src/fretboard.js';
 import { GLYPHS } from '../src/notation-glyphs.js';
 
@@ -76,4 +76,11 @@ test('every place a note is played must be found', () => {
   // a note with only one place is done in one tap
   const low = { midi: 40 };
   assert.equal(judgeTap(low, answersFor(low, positions), new Set(), { string: 0, fret: 0 }), 'done');
+});
+
+test('inlay dots sit in the middle of the neck, doubled at the 12th fret', () => {
+  const at = (fret) => [0, 1, 2, 3, 4, 5].filter((s) => hasInlay(s, fret));
+  for (const fret of [3, 5, 7, 9, 15]) assert.deepEqual(at(fret), [3], `fret ${fret}`); // G string's lower edge
+  assert.deepEqual(at(12), [2, 4]); // between D and A, and between B and G
+  for (const fret of [0, 1, 2, 4, 6, 8, 10, 11, 13, 14]) assert.deepEqual(at(fret), []);
 });

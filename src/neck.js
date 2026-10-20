@@ -1,7 +1,7 @@
 // Draw a guitar neck with labelled dots, for the triad and scale pages.
 // Uses the same .fb grid styles as the fretboard trainer.
 
-import { STRINGS } from './fretboard.js?v=19';
+import { STRINGS, hasInlay } from './fretboard.js?v=20';
 
 /**
  * marks: [{ string, fret, label, cls }] where cls is a space-separated list of mark classes
@@ -26,7 +26,7 @@ export function renderNeck(el, { maxFret = 15, marks = [], onTap = null, tapAll 
         c.addEventListener('click', () => onTap({ string: st.index, fret, ...m }));
         c.setAttribute('aria-label', `${st.name} string, ${fret === 0 ? 'open' : `fret ${fret}`}`);
       }
-      c.className = `fb-pos${fret === 0 ? ' open' : ''}${tappable ? '' : ' static'}`;
+      c.className = `fb-pos${fret === 0 ? ' open' : ''}${tappable ? '' : ' static'}${hasInlay(st.index, fret) ? ' inlay' : ''}`;
       c.style.setProperty('--gauge', `${1 + row * 0.5}px`);
       if (m) {
         const dot = document.createElement('b');
@@ -42,8 +42,7 @@ export function renderNeck(el, { maxFret = 15, marks = [], onTap = null, tapAll 
   for (let fret = 0; fret <= maxFret; fret++) {
     const n = document.createElement('span');
     n.className = 'fb-num';
-    const dots = fret === 12 ? '●●' : [3, 5, 7, 9, 15].includes(fret) ? '●' : '';
-    n.innerHTML = `${fret}${dots ? `<i>${dots}</i>` : ''}`;
+    n.textContent = fret;
     el.appendChild(n);
   }
 }

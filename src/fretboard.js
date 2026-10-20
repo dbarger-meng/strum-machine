@@ -2,7 +2,7 @@
 // treble staff, and checking an answer. Guitar music is written an octave above how it sounds,
 // so written middle C (C4) is the C on the A string, 3rd fret.
 
-import { OPEN_STRINGS } from './music.js?v=19';
+import { OPEN_STRINGS } from './music.js?v=20';
 
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const NATURAL_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -77,3 +77,10 @@ export function judgeTap(question, targets, found, position, anyOctave = false) 
   found.add(key);
   return targets.every((t) => found.has(positionKey(t))) ? 'done' : 'found';
 }
+
+/**
+ * Fretboard inlays, as on a real neck: single dots at frets 3, 5, 7, 9 and 15 in the middle of
+ * the board (drawn on the edge between the G and D strings) and a double dot at 12 (between
+ * B and G, and between D and A). Returns true for the string whose lower edge carries a dot.
+ */
+export const hasInlay = (string, fret) => ([3, 5, 7, 9, 15].includes(fret) && string === 3) || (fret === 12 && (string === 4 || string === 2));
