@@ -1,12 +1,12 @@
 // Interval trainer page: "find the 5th above this note" and "name the interval between two notes".
 
-import { AudioEngine } from './audio.js?v=20';
-import { renderNeck } from './neck.js?v=20';
-import { positionsFor, positionKey } from './fretboard.js?v=20';
-import { pretty } from './shapes.js?v=20';
+import { AudioEngine } from './audio.js?v=22';
+import { renderNeck } from './neck.js?v=22';
+import { positionsFor, positionKey } from './fretboard.js?v=22';
+import { pretty } from './shapes.js?v=22';
 import {
   INTERVAL_SETS, intervalBySemis, nameOf, spellUpper, spellPair, findQuestion, nameQuestion,
-} from './intervals.js?v=20';
+} from './intervals.js?v=22';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.intervals';

@@ -2,7 +2,7 @@
 // FluidR3 GM soundfont, CC BY 3.0), repitched to each note. Until they have loaded, and for the
 // mandolin, strings are synthesised with Karplus-Strong plucks.
 
-import { midiToFreq } from './music.js?v=20';
+import { midiToFreq } from './music.js?v=22';
 
 // One recording every three semitones, so no note is shifted by more than a semitone and a half.
 export const GUITAR_SAMPLES = ['E2', 'G2', 'Bb2', 'Db3', 'E3', 'G3', 'Bb3', 'Db4', 'E4', 'G4', 'Bb4', 'Db5', 'E5', 'G5', 'Bb5', 'Db6'];
@@ -235,7 +235,7 @@ export class AudioEngine {
     osc.frequency.value = accent ? 1900 : 1300;
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.3, when + 0.002);
+    g.gain.exponentialRampToValueAtTime(accent ? 0.55 : 0.45, when + 0.002);
     g.gain.exponentialRampToValueAtTime(0.0001, when + 0.04);
     osc.connect(g);
     g.connect(this.buses.click);

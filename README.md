@@ -41,7 +41,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 **Intervals.** `intervals.html` has two drills. Find the interval: a note is marked on the neck and you tap the 5th, 3rd, octave and so on above it (every place it falls, if you like). Name the interval: two notes are marked and played, and you pick the interval. Common intervals or all of them, any fret range.
 
-**Rhythm dictation.** `rhythm.html` plays a random four-bar melody in 4/4 or 6/8 and you write down its rhythm by tapping note values into each bar (whole, half, quarter, eighth, 16th and triplets in 4/4; dotted half, dotted quarter, quarter, eighth and 16th in 6/8). Check marks each bar and shows the correct rhythm in notation. Choose the note values, tempo, count-in and click.
+**Rhythm dictation.** `rhythm.html` plays a random four-bar melody in 4/4 or 6/8 and you write down its rhythm by tapping note values into each bar (whole, half, quarter, eighth, 16th and triplets in 4/4; dotted half, dotted quarter, quarter, eighth and 16th in 6/8). Check marks each bar and shows the correct rhythm in notation. Choose the note values, tempo, a one- or two-bar count-in (always at least four clicks; six in 6/8) and click.
 
 **Triad shapes.** `triads.html` shows every major, minor, diminished and augmented triad on a set of three adjacent strings, up to the 15th fret, coloured by root, third and fifth. Tap a shape (root position, first or second inversion) to pick it out and hear it.
 

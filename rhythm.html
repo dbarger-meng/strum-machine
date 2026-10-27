@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
 <header class="masthead">
@@ -76,8 +76,14 @@
       <div id="useValues" class="segmented wrap" role="group" aria-labelledby="useLabel"></div>
     </div>
     <p class="hint">6/8 is felt in two beats of three eighth notes, so its values are the dotted half (a full bar), dotted quarter (one beat), quarter, eighth and 16th. Triplets are a 4/4 rhythm. The tempo is the beat: a quarter note in 4/4, a dotted quarter in 6/8.</p>
-    <div class="checks trainer-checks">
-      <label><input id="countIn" type="checkbox" checked> Count in one bar</label>
+    <div class="row trainer-opts">
+      <label class="field">
+        <span>Count-in</span>
+        <select id="countIn">
+          <option value="1">One bar (4 clicks in 4/4, 6 in 6/8)</option>
+          <option value="2">Two bars</option>
+        </select>
+      </label>
     </div>
     <div class="row"><button id="resetScore" type="button" class="quiet">Reset score</button></div>
   </details>
@@ -87,6 +93,6 @@
   <p>Everything stays on your device. Notation symbols from the Bravura font by Steinberg, used under the <a href="licenses/Bravura-OFL.txt">SIL Open Font License</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
 </footer>
 
-<script type="module" src="src/rhythm-page.js?v=20"></script>
+<script type="module" src="src/rhythm-page.js?v=22"></script>
 </body>
 </html>
