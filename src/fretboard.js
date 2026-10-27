@@ -2,7 +2,7 @@
 // treble staff, and checking an answer. Guitar music is written an octave above how it sounds,
 // so written middle C (C4) is the C on the A string, 3rd fret.
 
-import { OPEN_STRINGS } from './music.js?v=20';
+import { OPEN_STRINGS } from './music.js?v=22';
 
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const NATURAL_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };

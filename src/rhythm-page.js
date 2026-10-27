@@ -1,10 +1,10 @@
 // Rhythm dictation page: play four bars, let the player write the rhythm, then check it.
 
-import { AudioEngine } from './audio.js?v=20';
-import { drawBar } from './rhythm-notation.js?v=20';
+import { AudioEngine } from './audio.js?v=22';
+import { drawBar } from './rhythm-notation.js?v=22';
 import {
   METERS, VALUES, canFill, randomDictation, addValue, undoLast, remaining, sameRhythm,
-} from './rhythm.js?v=20';
+} from './rhythm.js?v=22';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.rhythm';
@@ -13,7 +13,7 @@ const engine = new AudioEngine();
 const DEFAULT_USE = { '4/4': VALUES['4/4'].map((v) => v.id), '6/8': VALUES['6/8'].map((v) => v.id) };
 const DEFAULT_TEMPO = { '4/4': 72, '6/8': 52 };
 
-const settings = { meter: '4/4', tempo: { ...DEFAULT_TEMPO }, use: JSON.parse(JSON.stringify(DEFAULT_USE)), click: false, countIn: true };
+const settings = { meter: '4/4', tempo: { ...DEFAULT_TEMPO }, use: JSON.parse(JSON.stringify(DEFAULT_USE)), click: false, countInBars: 1 };
 const stats = { bars: 0, barsRight: 0, perfect: 0, tries: 0 };
 let dictation = [];
 let answer = [[], [], [], []];
@@ -29,6 +29,8 @@ function load() {
     if (saved.stats) Object.assign(stats, saved.stats);
   } catch (e) { /* first visit */ }
   if (!METERS[settings.meter]) settings.meter = '4/4';
+  if (![1, 2].includes(settings.countInBars)) settings.countInBars = 1;
+  delete settings.countIn; // replaced by countInBars: there is always at least a bar of count-in
   for (const m of Object.keys(METERS)) {
     const ok = VALUES[m].map((v) => v.id);
     settings.use[m] = (settings.use[m] || []).filter((id) => ok.includes(id));
@@ -129,7 +131,7 @@ function renderSettings() {
   $('tempo').value = settings.tempo[meter()];
   $('tempoLabel').textContent = `Tempo: ${settings.tempo[meter()]} (${meter() === '6/8' ? 'dotted-quarter' : 'quarter-note'} beats per minute)`;
   $('clickAlong').checked = settings.click;
-  $('countIn').checked = settings.countIn;
+  $('countIn').value = String(settings.countInBars);
   const use = $('useValues');
   use.innerHTML = '';
   for (const v of VALUES[meter()]) {
@@ -164,23 +166,29 @@ function stop() {
   if (engine.ctx) engine.stopAll();
   playing = false;
   $('play').textContent = 'Play';
+  const msg = $('feedback').textContent;
+  if (msg.startsWith('Count-in') || msg === 'Listen…') setFeedback(checked ? '' : 'Write the rhythm below, then press Check. Tap Play or ▶ Bar to hear it again.');
   document.querySelectorAll('.rhythm-bar.now').forEach((b) => b.classList.remove('now'));
 }
 
 /** Play the chosen bars (all four by default), after a count-in. */
-function play(which = [0, 1, 2, 3]) {
+async function play(which = [0, 1, 2, 3]) {
   stop();
   const ctx = engine.ensure();
+  engine.setVolume('click', 1);
+  // Phones can take a moment to start audio; wait for it so no count-in click is lost.
+  if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) { /* plays when allowed */ } }
   const spq = secondsPerQuarter();
-  const { barLen, beatLen } = METERS[meter()];
+  const { barLen } = METERS[meter()];
   const pulse = meter() === '6/8' ? 0.5 : 1; // count-in and click: eighths in 6/8, quarters in 4/4
-  let t = ctx.currentTime + 0.1;
+  let t = ctx.currentTime + 0.25;
   const clicks = (from, len) => {
-    for (let b = 0; b < len - 1e-6; b += pulse) engine.click(from + b * spq, Math.abs(b % beatLen) < 1e-6 && Math.abs(b % barLen) < 1e-6);
+    for (let b = 0; b < len - 1e-6; b += pulse) engine.click(from + b * spq, Math.abs(b % barLen) < 1e-6);
   };
-  // A bar of count-in for the whole rhythm; one beat of lead-in when playing a single bar.
-  const lead = which.length === 1 ? beatLen : settings.countIn ? barLen : 0;
+  // Always at least a full bar of count-in (4 clicks in 4/4, 6 in 6/8), before a single bar too.
+  const lead = barLen * settings.countInBars;
   clicks(t, lead);
+  countInDisplay(t, lead, pulse, spq);
   t += lead * spq;
   const start = t;
   which.forEach((i, k) => {
@@ -202,6 +210,17 @@ function play(which = [0, 1, 2, 3]) {
   timers.push(setTimeout(stop, (end - ctx.currentTime) * 1000 + 300));
   playing = true;
   $('play').textContent = 'Stop';
+}
+
+/** Show the count-in beats on screen in time with the clicks. */
+function countInDisplay(from, lead, pulse, spq) {
+  const ctx = engine.ctx;
+  const { barLen } = METERS[meter()];
+  for (let b = 0, k = 0; b < lead - 1e-6; b += pulse, k++) {
+    const n = Math.round((b % barLen) / pulse) + 1;
+    timers.push(setTimeout(() => setFeedback(`Count-in: ${'● '.repeat(n - 1)}${n}`), (from + b * spq - ctx.currentTime) * 1000));
+  }
+  timers.push(setTimeout(() => setFeedback('Listen…'), (from + lead * spq - ctx.currentTime) * 1000));
 }
 
 // ---------- answering ----------
@@ -266,7 +285,7 @@ function init() {
   $('clearBar').addEventListener('click', () => { if (!checked) { answer[selected] = []; renderBars(); } });
   $('tempo').addEventListener('input', () => { settings.tempo[meter()] = +$('tempo').value; save(); renderSettings(); });
   $('clickAlong').addEventListener('change', () => { settings.click = $('clickAlong').checked; save(); });
-  $('countIn').addEventListener('change', () => { settings.countIn = $('countIn').checked; save(); });
+  $('countIn').addEventListener('change', () => { settings.countInBars = +$('countIn').value; save(); });
   $('resetScore').addEventListener('click', () => { Object.assign(stats, { bars: 0, barsRight: 0, perfect: 0, tries: 0 }); save(); renderScore(); });
   engine.preload();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js').catch(() => {});

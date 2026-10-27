@@ -2,7 +2,7 @@
 // ("find the 5th above this note" and "name the interval between these two notes").
 // Positions are { string, fret, midi } with strings indexing OPEN_STRINGS (0 = low E).
 
-import { ROOTS, spellFrom, pretty } from './shapes.js?v=20';
+import { ROOTS, spellFrom, pretty } from './shapes.js?v=22';
 
 // Semitones, full name, scale-degree label, letter steps (for spelling the upper note).
 export const INTERVALS = [
