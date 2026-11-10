@@ -27,7 +27,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 ## What it does
 
-**Song library.** 19 common bluegrass jam songs, gospel songs, fiddle tunes and a waltz (chords only, no lyrics). One tap loads the chart, key, tempo, time signature and strum pattern; Undo puts back what you had. Charts follow the usual jam versions (mostly as charted in the Idaho Bluegrass Association's jam notes) and stay editable. Add songs in `src/library.js`; `npm test` checks every chart.
+**Song library.** 34 common bluegrass jam songs, gospel songs, fiddle tunes and waltzes (chords only, no lyrics). One tap loads the chart, key, tempo, time signature and strum pattern; Undo puts back what you had. Charts follow the usual jam versions (mostly as charted in the Idaho Bluegrass Association's jam notes) and stay editable. Add songs in `src/library.js`; `npm test` checks every chart.
 
 **Strum pattern editor.** One bar on a beat grid (eighth or sixteenth notes). Paint each step with a root bass, fifth bass, chuck, down strum, up strum, chop or rest. Presets cover boom-chuck, boom-chuck-a, boom-strum, mandolin-style chop, and waltz and 2/4 versions. Swing and looseness sliders shape the feel. Save patterns in your browser or copy a share link.
 

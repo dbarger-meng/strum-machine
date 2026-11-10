@@ -1,10 +1,10 @@
 // Triad shapes page: every close-voiced triad on a set of three strings, up the neck.
 
-import { AudioEngine } from './audio.js?v=25';
-import { renderNeck, playNotes } from './neck.js?v=25';
+import { AudioEngine } from './audio.js?v=27';
+import { renderNeck, playNotes } from './neck.js?v=27';
 import {
   ROOTS, TRIADS, STRING_SETS, INVERSIONS, triadShapes, spellFrom, pretty,
-} from './shapes.js?v=25';
+} from './shapes.js?v=27';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.triads';
