@@ -57,6 +57,94 @@ export const LIBRARY = [
     chart: '| C | C | G | G |\n| G | G | C | C |\n| E | E | F | F |\n| C | G | C | C |',
   },
 
+  {
+    id: 'nine-pound-hammer', title: 'Nine Pound Hammer', kind: 'Songs',
+    key: 'A', ts: '4/4', tempo: 230, preset: 'boom-chuck',
+    chart: '| A | A | D | D |\n| A | E | A | A |\n| A | A | D | D |\n| A | E | A | A |',
+  },
+  {
+    id: 'blue-ridge-cabin-home', title: 'Blue Ridge Cabin Home', kind: 'Songs',
+    key: 'A', ts: '4/4', tempo: 230, preset: 'boom-chuck',
+    chart: '| A | A | D | D |\n| E | E | A | A |\n| A | A | D | D |\n| E | E | A | A |',
+    note: 'The four chord goes straight to the five, never back to the one.',
+  },
+  {
+    id: 'mountain-dew', title: 'Mountain Dew', kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 230, preset: 'boom-chuck',
+    chart: '| G | G | G | G |\n| C | C | G | G |\n| G | G | G | G |\n| G | D | G | G |',
+    note: 'The same chords as Will the Circle Be Unbroken.',
+  },
+  {
+    id: 'old-home-place', title: 'Old Home Place', kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 220, preset: 'boom-chuck',
+    chart:
+      '# verse\n'
+      + '| G | B | C | G |\n'
+      + '| G | G | D | D |\n'
+      + '| G | B | C | G |\n'
+      + '| G | D | G | G |\n'
+      + '# chorus\n'
+      + '| D | D | G | G |\n'
+      + '| A | A | D | D |\n'
+      + '| G | B | C | G |\n'
+      + '| G | D | G | G |',
+    note: 'Verse, then chorus. Often sung as two verses before each chorus, and usually played in B flat (Key shift +3).',
+  },
+  {
+    id: 'lonesome-road-blues', title: 'Lonesome Road Blues', kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 240, preset: 'boom-chuck',
+    chart: '| G | G | G | G |\n| C | C | G | G |\n| C | C | G | G |\n| D | D | G | G |',
+    note: 'Also known as Going Down the Road Feeling Bad.',
+  },
+  {
+    id: 'columbus-stockade-blues', title: 'Columbus Stockade Blues', kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 220, preset: 'boom-chuck',
+    chart:
+      '# verse\n'
+      + '| G | G | G | G |\n'
+      + '| D | D | G | G |\n'
+      + '| G | G | G | G |\n'
+      + '| D | D | G | G |\n'
+      + '# chorus\n'
+      + '| C | C | G | G |\n'
+      + '| C | C | D | D |\n'
+      + '| G | G | G | G |\n'
+      + '| D | D | G | G |',
+    note: 'Verse, then chorus.',
+  },
+  {
+    id: 'im-thinking-tonight-of-my-blue-eyes', title: "I'm Thinking Tonight of My Blue Eyes", kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 200, preset: 'boom-chuck',
+    chart: '| G | G | C | C |\n| D | D | G | G |\n| G | G | C | C |\n| D | D | G | G |',
+  },
+  {
+    id: 'roving-gambler', title: 'Roving Gambler', kind: 'Songs',
+    key: 'A', ts: '4/4', tempo: 230, preset: 'boom-chuck',
+    chart: '| A | A | A | A |\n| A | A | D | A |\n| A | A | E | A | A |',
+    note: 'Thirteen bars: the last line runs five.',
+  },
+  {
+    id: 'beautiful-brown-eyes', title: 'Beautiful Brown Eyes', kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 200, preset: 'boom-chuck',
+    chart: '| G | G | C | C |\n| G | G | D | D |\n| G | G | C | C |\n| D | D | G | G |',
+    note: 'The bluegrass version, counted two to the bar. Outside bluegrass it is usually a waltz.',
+  },
+  {
+    id: 'shell-be-coming-round-the-mountain', title: "She'll Be Coming Round the Mountain", kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 230, preset: 'boom-chuck',
+    chart: '| G | G | G | G |\n| G | G | D | D |\n| G | G | C | C |\n| G | D | G | G |',
+  },
+  {
+    id: 'banks-of-the-ohio', title: 'Banks of the Ohio', kind: 'Songs',
+    key: 'G', ts: '4/4', tempo: 190, preset: 'boom-chuck',
+    chart: '| G | G | D | D |\n| D | D | G | G |\n| G | G | C | C |\n| G | D | G | G |',
+  },
+  {
+    id: 'wildwood-flower', title: 'Wildwood Flower', kind: 'Songs',
+    key: 'C', ts: '4/4', tempo: 200, preset: 'boom-chuck',
+    chart: '| C | C | G | C | C |\n| C | C | G | C | C |\n| C | C | F | C |\n| C | C | G | C | C |',
+    note: 'Nineteen bars: the first, second and last lines run five.',
+  },
   // ---- gospel ----
   {
     id: 'will-the-circle-be-unbroken', title: 'Will the Circle Be Unbroken', kind: 'Gospel',
@@ -77,6 +165,12 @@ export const LIBRARY = [
     note: 'The last line runs five bars.',
   },
 
+  {
+    id: 'cryin-holy', title: "Cryin' Holy Unto the Lord", kind: 'Gospel',
+    key: 'G', ts: '4/4', tempo: 230, preset: 'boom-chuck',
+    chart: '| G | G | G | G |\n| C | C | G | G |\n| G | G | G | G |\n| G | D | G | G |',
+    note: 'The same chords as Will the Circle Be Unbroken.',
+  },
   // ---- fiddle tunes ----
   {
     id: 'foggy-mountain-breakdown', title: 'Foggy Mountain Breakdown', kind: 'Fiddle tunes',
@@ -125,10 +219,32 @@ export const LIBRARY = [
     note: 'A first jam tune: the classic I-IV-V workout.',
   },
 
+  {
+    id: 'buffalo-gals', title: 'Buffalo Gals', kind: 'Fiddle tunes',
+    key: 'A', ts: '4/4', tempo: 210, preset: 'boom-chuck',
+    chart:
+      '# A part\n'
+      + '| A | A | E | A |\n'
+      + '| A | A | E | A |\n'
+      + '| A | A | E | A |\n'
+      + '| A | A | E | A |\n'
+      + '# B part\n'
+      + '| A | A | E | A |\n'
+      + '| A | A | E | A |\n'
+      + '| A | A | E | A |\n'
+      + '| A | A | E | A |',
+    note: 'Both parts use the same four-bar line, eight times through.',
+  },
   // ---- waltzes ----
   {
     id: 'amazing-grace', title: 'Amazing Grace', kind: 'Waltzes',
     key: 'G', ts: '3/4', tempo: 95, preset: 'waltz',
     chart: '| G | G | C | G |\n| G | G | D | D |\n| G | G | C | G |\n| G | D | G | G |',
+  },
+  {
+    id: 'all-the-good-times', title: 'All the Good Times Are Past and Gone', kind: 'Waltzes',
+    key: 'A', ts: '3/4', tempo: 100, preset: 'waltz',
+    chart: '| A | A | D | A |\n| A | A | E | E |\n| A | A | D | A |\n| A | E | A | A |',
+    note: 'The same chords as Amazing Grace.',
   },
 ];
