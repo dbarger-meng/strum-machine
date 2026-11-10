@@ -1,16 +1,16 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=24';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=24';
+import { AudioEngine } from './audio.js?v=25';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=25';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=24';
-import { KINDS, LIBRARY } from './library.js?v=24';
-import { parseAny } from './parsers.js?v=24';
+} from './song.js?v=25';
+import { KINDS, LIBRARY } from './library.js?v=25';
+import { parseAny } from './parsers.js?v=25';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=24';
+} from './chart-edit.js?v=25';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -18,7 +18,7 @@ const engine = new AudioEngine();
 
 const DEFAULT_CHART = '| G | G | C | G |\n| G | C | D | G |';
 const state = {
-  tempo: 110,
+  tempo: 180,
   ts: '4/4',
   sub: 2,
   cells: defaultCells(4, 2),
@@ -103,6 +103,7 @@ function fillStaticSelects() {
 
 function syncControls() {
   el.tempo.value = el.tempoNum.value = state.tempo;
+  showCutTime();
   el.transpose.value = state.transpose;
   if (![...el.timeSig.options].some((o) => o.value === state.ts)) el.timeSig.add(new Option(state.ts, state.ts));
   el.timeSig.value = state.ts;
@@ -662,6 +663,7 @@ function rebuild() {
   });
   renderChart();
   drawRoll();
+  showCutTime();
   if (!play.on) lightBeat(-1);
 }
 
@@ -807,14 +809,21 @@ function frame() {
   play.raf = requestAnimationFrame(frame);
 }
 
+// Bluegrass players count two beats to the bar, so show that count beside the quarter-note tempo.
+function showCutTime() {
+  const { num, den } = timeSig();
+  el.cutTime.textContent = den === 4 && num === 4 ? `(${Math.round(state.tempo / 2)} counted two to the bar)` : '';
+}
+
 function setTempo(v) {
-  const t = Math.max(50, Math.min(220, Math.round(v) || 110));
+  const t = Math.max(50, Math.min(320, Math.round(v) || 180));
   if (play.on) {
     play.anchorBeat = beatAt(engine.ctx.currentTime);
     play.anchorTime = engine.ctx.currentTime;
   }
   state.tempo = t;
   el.tempo.value = el.tempoNum.value = t;
+  showCutTime();
   persist();
 }
 
