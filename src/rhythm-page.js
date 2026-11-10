@@ -1,10 +1,10 @@
 // Rhythm dictation page: play four bars, let the player write the rhythm, then check it.
 
-import { AudioEngine } from './audio.js?v=24';
-import { drawBar } from './rhythm-notation.js?v=24';
+import { AudioEngine } from './audio.js?v=25';
+import { drawBar } from './rhythm-notation.js?v=25';
 import {
   METERS, VALUES, canFill, randomDictation, addValue, undoLast, remaining, sameRhythm,
-} from './rhythm.js?v=24';
+} from './rhythm.js?v=25';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.rhythm';

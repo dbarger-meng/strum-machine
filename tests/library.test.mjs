@@ -14,7 +14,9 @@ test('every library song has a valid, playable setup', () => {
     assert.ok(bars.length >= 8, `${s.title}: has a full chart`);
     assert.ok(KINDS.includes(s.kind), `${s.title}: kind`);
     assert.ok(['4/4', '3/4', '2/4', '6/8'].includes(s.ts), `${s.title}: time signature`);
-    assert.ok(s.tempo >= 50 && s.tempo <= 220, `${s.title}: tempo in range`);
+    assert.ok(s.tempo >= 50 && s.tempo <= 320, `${s.title}: tempo in range`);
+    // 4/4 songs are counted two to the bar: 180 to 260 here is 90 to 130 in cut time.
+    if (s.ts === '4/4') assert.ok(s.tempo >= 180 && s.tempo <= 260, `${s.title}: cut-time tempo, not half speed`);
     const [num, den] = s.ts.split('/').map(Number);
     assert.ok(presetsFor(barLength({ num, den })).some((p) => p.id === s.preset), `${s.title}: preset exists`);
     const key = parseChord(s.key);

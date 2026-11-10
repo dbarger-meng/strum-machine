@@ -460,3 +460,5 @@ h3.sub { margin: 16px 0 2px; font: 700 1.05rem var(--slab); }
   .rhythm-bars { grid-template-columns: minmax(0, 1fr); }
   .value-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+.cut-time { font-size: 0.8rem; white-space: nowrap; }
