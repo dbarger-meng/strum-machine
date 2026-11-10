@@ -63,7 +63,7 @@ The melody plays (fiddle, mandolin or guitar sound) over the strum. If the file 
 - **Scanned PDFs and photos of sheet music are not supported.** Reading notation from an image needs optical music recognition, which cannot run in a plain web page. Convert the page in MuseScore or Audiveris to MusicXML or MIDI first.
 - Tab has no rhythm information. By default each bar is stretched to fit the time signature, so bar lines must line up. If your tab uses a fixed spacing, choose "Each dash is an eighth note" (or another value) under Tab timing.
 - Chord guessing uses major and minor triads, so sevenths and other colors need to be added by hand.
-- The guitar is one recorded steel-string guitar, repitched to each note, with a light room reverb. The fiddle and mandolin melody sounds are still synthesized.
+- The guitar is one recorded steel-string guitar, repitched to each note, with a light room reverb. Strums are modelled on a real stroke: strings ring until they are hit again or the chord changes, the pick speeds up across the strings and is heard, down-strokes favour the low strings and up-strokes the high ones, and no two strokes are identical. The fiddle and mandolin melody sounds are still synthesized.
 
 ## Releasing
 

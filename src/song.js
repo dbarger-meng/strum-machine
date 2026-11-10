@@ -2,7 +2,7 @@
 
 import {
   parseChord, transposeChord, chordVoicing, voicingMidi, bassNotes, scaleStep, keyMajorTonic,
-} from './music.js?v=22';
+} from './music.js?v=24';
 
 export const barLength = (ts) => (ts.num * 4) / ts.den; // length of a bar in quarter-note beats
 
@@ -209,12 +209,23 @@ export function buildEvents({
       const bn = bassNotes(ch);
       const v = voicingMidi(chordVoicing(ch));
       const upTo = (from, to) => v.slice(from, to).filter((x) => x !== null);
+      // Which string each strummed note is on (0 = low E), so a re-struck string cuts its last note.
+      const stringsOf = (from, to) => v.map((x, k) => (x === null || k < from || k >= to ? -1 : k)).filter((k) => k >= 0);
+      const strum = (from, to, dir, rest) => {
+        const up = dir === 'up';
+        return {
+          beat, kind: 'strum', dir, chord: ch.name, ...rest,
+          notes: up ? upTo(from, to).reverse() : upTo(from, to),
+          strings: up ? stringsOf(from, to).reverse() : stringsOf(from, to),
+        };
+      };
       switch (cell) {
         case 'R': events.push({ beat, kind: 'bass', notes: [bn.root], dur: 1, vel: 0.95, ring: true }); break;
         case 'F': events.push({ beat, kind: 'bass', notes: [bn.fifth], dur: 1, vel: 0.9, ring: true }); break;
-        case 'C': events.push({ beat, kind: 'strum', notes: upTo(2, 6), dir: 'down', vel: 0.62, dur: 0.3, spread: 0.008 }); break;
-        case 'D': events.push({ beat, kind: 'strum', notes: upTo(0, 6), dir: 'down', vel: 0.75, dur: 0.8, spread: 0.011 }); break;
-        case 'U': events.push({ beat, kind: 'strum', notes: upTo(3, 6).reverse(), dir: 'up', vel: 0.45, dur: 0.4, spread: 0.007 }); break;
+        // A chuck is damped by the hand; full strums and up-strums ring until the strings are hit again.
+        case 'C': events.push(strum(2, 6, 'down', { vel: 0.62, dur: 0.4, spread: 0.007 })); break;
+        case 'D': events.push(strum(0, 6, 'down', { vel: 0.75, dur: 0.8, spread: 0.009, ring: true })); break;
+        case 'U': events.push(strum(3, 6, 'up', { vel: 0.5, dur: 0.4, spread: 0.006, ring: true })); break;
         case 'X': events.push({ beat, kind: 'chop', notes: upTo(2, 5), vel: 0.7, dur: 0.1 }); break;
         default: break;
       }
