@@ -1,16 +1,16 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=22';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=22';
+import { AudioEngine } from './audio.js?v=24';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=24';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=22';
-import { KINDS, LIBRARY } from './library.js?v=22';
-import { parseAny } from './parsers.js?v=22';
+} from './song.js?v=24';
+import { KINDS, LIBRARY } from './library.js?v=24';
+import { parseAny } from './parsers.js?v=24';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=22';
+} from './chart-edit.js?v=24';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -710,7 +710,7 @@ function scheduleEvent(ev) {
   const sec = (ev.dur || 0.5) * spb();
   switch (ev.kind) {
     case 'click': engine.click(t, ev.accent); break;
-    case 'strum': if (state.strumOn) engine.strum(ev.notes, t, { dir: ev.dir, vel, dur: sec, spread: ev.spread }); break;
+    case 'strum': if (state.strumOn) engine.strum(ev.notes, t, { dir: ev.dir, vel, dur: sec, spread: ev.spread, strings: ev.strings, chord: ev.chord, ring: ev.ring }); break;
     case 'bass': if (state.strumOn) engine.bass(ev.notes[0], t, { vel, dur: sec }); break;
     case 'chop': if (state.strumOn) engine.chop(ev.notes, t, { vel }); break;
     case 'melody': if (state.melodyOn) engine.melody(ev.midi, t, sec * 0.97, vel, state.inst); break;

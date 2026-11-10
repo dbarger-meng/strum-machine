@@ -2,7 +2,7 @@
 // FluidR3 GM soundfont, CC BY 3.0), repitched to each note. Until they have loaded, and for the
 // mandolin, strings are synthesised with Karplus-Strong plucks.
 
-import { midiToFreq } from './music.js?v=22';
+import { midiToFreq } from './music.js?v=24';
 
 // One recording every three semitones, so no note is shifted by more than a semitone and a half.
 export const GUITAR_SAMPLES = ['E2', 'G2', 'Bb2', 'Db3', 'E3', 'G3', 'Bb3', 'Db4', 'E4', 'G4', 'Bb4', 'Db5', 'E5', 'G5', 'Bb5', 'Db6'];
@@ -10,6 +10,13 @@ export const GUITAR_SAMPLES = ['E2', 'G2', 'Bb2', 'Db3', 'E3', 'G3', 'Bb3', 'Db4
 const BASS_LEVEL = 0.35;
 const NOTE_PC = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, Gb: 6, G: 7, Ab: 8, A: 9, Bb: 10, B: 11 };
 const sampleMidi = (name) => 12 * (Number(name.slice(-1)) + 1) + NOTE_PC[name.slice(0, -1)];
+
+/** The second-nearest recording: the same pitch from a different recording, for variety. */
+export function secondNearestSample(samples, midi) {
+  const first = nearestSample(samples, midi).sample;
+  const rest = samples.filter((s) => s !== first);
+  return rest.length ? nearestSample(rest, midi) : nearestSample(samples, midi);
+}
 
 /** The recording nearest a note, and the playback rate that tunes it to that note. */
 export function nearestSample(samples, midi) {
@@ -26,6 +33,8 @@ export class AudioEngine {
     this.volumes = { guitar: 0.8, bass: 0.9, melody: 0.6, click: 0.4 };
     this.noise = null;
     this.samples = null; // [{ midi, buf, offset }] once decoded
+    this.stringVoices = new Array(6).fill(null); // the strummed note still sounding on each string
+    this.lastChord = null;
     this.sampleData = null;
   }
 
@@ -98,6 +107,8 @@ export class AudioEngine {
   stopAll() {
     for (const s of this.live) { try { s.stop(); } catch (e) { /* already stopped */ } }
     this.live.clear();
+    this.stringVoices.fill(null);
+    this.lastChord = null;
   }
 
   track(node) {
@@ -134,9 +145,12 @@ export class AudioEngine {
   }
 
   // Recorded guitar note. `bright` (0-1) opens a low-pass filter: harder strokes sound brighter.
-  playSample(midi, when, { vel, dur, bus, release, bright }) {
+  // `vary` picks between the two nearest recordings and detunes by a few cents, so repeated
+  // strums are not carbon copies; `thin` (Hz) high-passes the note, for up-strokes.
+  playSample(midi, when, { vel, dur, bus, release, bright, vary = false, thin = 0 }) {
     const ctx = this.ctx;
-    const { sample, rate } = nearestSample(this.samples, midi);
+    const { sample, rate: tuned } = vary && Math.random() < 0.35 ? secondNearestSample(this.samples, midi) : nearestSample(this.samples, midi);
+    const rate = vary ? tuned * Math.pow(2, ((Math.random() - 0.5) * 6) / 1200) : tuned;
     const src = ctx.createBufferSource();
     src.buffer = sample.buf;
     src.playbackRate.value = rate;
@@ -144,6 +158,14 @@ export class AudioEngine {
     lp.type = 'lowpass';
     lp.frequency.value = 900 + 9000 * Math.pow(bright, 1.6);
     lp.Q.value = 0.5;
+    let tone = lp;
+    if (thin) {
+      tone = ctx.createBiquadFilter();
+      tone.type = 'highpass';
+      tone.frequency.value = thin;
+      tone.Q.value = 0.5;
+      lp.connect(tone);
+    }
     const g = ctx.createGain();
     g.gain.setValueAtTime(0, when);
     g.gain.linearRampToValueAtTime(vel, when + 0.003);
@@ -154,7 +176,7 @@ export class AudioEngine {
       g.connect(out);
     }
     src.connect(lp);
-    lp.connect(g);
+    tone.connect(g);
     out.connect(this.buses[bus]);
     src.start(when, sample.offset);
     if (dur !== null) {
@@ -163,12 +185,22 @@ export class AudioEngine {
       src.stop(end + release * 3);
     } else src.stop(when + Math.min(4, (sample.buf.duration - sample.offset) / rate));
     this.track(src);
+    return { src, g };
   }
 
-  playPluck(midi, when, { vel = 0.7, dur = null, bus = 'guitar', T = 1.6, damp = 0.4, release = 0.05, bright = 0.7, synth = false } = {}) {
+  /** Stop a sounding note at time `when`, fading over about three `tc` (seconds). */
+  choke(voice, when, tc) {
+    if (!voice) return;
+    try {
+      voice.g.gain.cancelScheduledValues(when);
+      voice.g.gain.setTargetAtTime(0, when, tc);
+      voice.src.stop(when + tc * 6);
+    } catch (e) { /* already ended */ }
+  }
+
+  playPluck(midi, when, { vel = 0.7, dur = null, bus = 'guitar', T = 1.6, damp = 0.4, release = 0.05, bright = 0.7, synth = false, vary = false, thin = 0 } = {}) {
     if (this.samples && !synth) {
-      this.playSample(midi, when, { vel: vel * 0.7, dur, bus, release, bright });
-      return;
+      return this.playSample(midi, when, { vel: vel * 0.7, dur, bus, release, bright, vary, thin });
     }
     const ctx = this.ctx;
     const { buf, rate } = this.pluck(midi, T, damp);
@@ -187,15 +219,68 @@ export class AudioEngine {
     src.connect(g);
     g.connect(this.buses[bus]);
     this.track(src);
+    return { src, g };
   }
 
-  strum(midis, when, { dir = 'down', vel = 0.7, dur = 0.5, spread = 0.01 } = {}) {
-    const gain = (vel * 0.9) / Math.sqrt(Math.max(1, midis.length));
+  /**
+   * Strum notes in the order the pick crosses them. `strings` says which string each note is
+   * on (0 = low E): hitting a string again cuts its previous note, and a chord change damps
+   * everything still ringing, as the fretting hand lifts. With `ring`, notes sound until then;
+   * otherwise the strum is damped after `dur` (a chuck).
+   */
+  strum(midis, when, { dir = 'down', vel = 0.7, dur = 0.5, spread = 0.01, strings = null, chord = null, ring = false } = {}) {
+    const n = midis.length;
+    const up = dir === 'up';
+    const gain = (vel * 0.72) / Math.sqrt(Math.max(1, n));
+    if (chord !== this.lastChord) {
+      this.stringVoices.forEach((v) => this.choke(v, when, 0.03));
+      this.stringVoices.fill(null);
+      this.lastChord = chord;
+    }
+    this.pickNoise(when, vel, up);
     midis.forEach((m, i) => {
-      this.playPluck(m, when + i * spread, {
-        vel: gain * (0.9 + 0.1 * Math.sin(i * 2.1)), dur, T: 1.4, damp: dir === 'up' ? 0.3 : 0.4, bright: vel * (dir === 'up' ? 0.85 : 1), release: 0.08,
+      // The pick speeds up as it crosses the strings, and no two strokes are spaced alike.
+      const at = when + spread * (n > 1 ? Math.pow(i / (n - 1), 0.8) * (n - 1) : 0) + (Math.random() - 0.5) * 0.002;
+      // A down-stroke digs into the first strings it meets; an up-stroke mostly catches the
+      // first two and brushes the rest.
+      const shape = up ? Math.pow(0.72, i) * 1.25 : 1.12 - 0.22 * (i / Math.max(1, n - 1));
+      const voice = this.playPluck(m, at, {
+        vel: gain * shape * (0.88 + 0.24 * Math.random()), dur: ring ? null : dur, T: 1.4, damp: up ? 0.3 : 0.4,
+        bright: Math.min(1, (up ? 0.92 : 0.6 + 0.4 * vel) * (0.95 + 0.1 * Math.random())), release: ring ? 0.08 : 0.2,
+        vary: true, thin: up ? 190 : 0,
       });
+      const s = strings ? strings[i] : -1;
+      if (s >= 0 && s < 6) {
+        this.choke(this.stringVoices[s], at, 0.006);
+        this.stringVoices[s] = voice;
+      }
     });
+  }
+
+  // The pick crossing the strings: a few milliseconds of bright noise under each stroke.
+  pickNoise(when, vel, up) {
+    const ctx = this.ctx;
+    if (!this.noise) {
+      this.noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.15), ctx.sampleRate);
+      const ch = this.noise.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = this.noise;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = (up ? 5200 : 3800) * (0.9 + 0.2 * Math.random());
+    bp.Q.value = 1.1;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(vel * 0.09, when + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0005, when + 0.03);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.buses.guitar);
+    src.start(when, Math.random() * 0.1);
+    src.stop(when + 0.04);
+    this.track(src);
   }
 
   bass(midi, when, { vel = 0.9, dur = 0.8 } = {}) {

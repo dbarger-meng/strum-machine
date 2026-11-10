@@ -364,3 +364,25 @@ test('metronome clicks every beat and accents the start of each bar', () => {
   assert.deepEqual(clickBeats(0.5, 3.2, 3).map((c) => [c.beat, c.accent]), [[1, false], [2, false], [3, true]]);
   assert.deepEqual(clickBeats(2, 2, 4), []);
 });
+
+test('strums say which string each note is on, and which ring', () => {
+  const t = buildEvents({ bars: parseChart('| C |').bars, timeSig: { num: 4, den: 4 }, pattern: { cells: 'R.DU.UC.'.split('') }, bassRuns: 'off' });
+  const [down, up, , chuck] = t.events.filter((e) => e.kind === 'strum');
+  // C major is x32010: the low E string is not played
+  assert.deepEqual(down.strings, [1, 2, 3, 4, 5]);
+  assert.deepEqual(down.notes, [48, 52, 55, 60, 64]);
+  assert.deepEqual(up.strings, [5, 4, 3]); // an up-stroke crosses the high strings first
+  assert.deepEqual(up.notes, [64, 60, 55]);
+  assert.deepEqual(chuck.strings, [2, 3, 4, 5]);
+  assert.ok(down.ring && up.ring && !chuck.ring);
+  assert.equal(down.chord, 'C');
+});
+
+test('a second recording is available for variety', async () => {
+  const { secondNearestSample, nearestSample } = await import('../src/audio.js');
+  const samples = [40, 43, 46].map((midi) => ({ midi }));
+  assert.equal(nearestSample(samples, 44).sample.midi, 43);
+  const alt = secondNearestSample(samples, 44);
+  assert.equal(alt.sample.midi, 46);
+  assert.ok(Math.abs(alt.rate - Math.pow(2, -2 / 12)) < 1e-9);
+});
