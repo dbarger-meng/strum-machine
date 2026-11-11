@@ -56,7 +56,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 | MusicXML (`.xml`, `.musicxml`, `.mxl`) | Repeats and endings, chord symbols, tempo, multiple parts. |
 | MIDI (`.mid`) | Picks the most melody-like track; others can be chosen. |
 
-The melody plays (fiddle, mandolin or guitar sound) over the strum. If the file has no chord symbols, chords are guessed from the melody and written into the chart so you can edit them.
+The melody plays on the recorded guitar by default (synthesized fiddle and mandolin are also offered). With a melody loaded, a switch beside Play chooses melody and strum, melody only, or strum only. If the file has no chord symbols, chords are guessed from the melody and written into the chart so you can edit them.
 
 ## Limits
 

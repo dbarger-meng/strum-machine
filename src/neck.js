@@ -1,7 +1,7 @@
 // Draw a guitar neck with labelled dots, for the triad and scale pages.
 // Uses the same .fb grid styles as the fretboard trainer.
 
-import { STRINGS, hasInlay } from './fretboard.js?v=27';
+import { STRINGS, hasInlay } from './fretboard.js?v=28';
 
 /**
  * marks: [{ string, fret, label, cls }] where cls is a space-separated list of mark classes

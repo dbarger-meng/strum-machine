@@ -464,3 +464,5 @@ h3.sub { margin: 16px 0 2px; font: 700 1.05rem var(--slab); }
 .tempo-inputs { flex-wrap: wrap; }
 .cut-time { font-size: 0.8rem; flex-basis: 100%; }
 @media (min-width: 641px) { .cut-time { flex-basis: auto; white-space: nowrap; } }
+
+.field[hidden] { display: none; }

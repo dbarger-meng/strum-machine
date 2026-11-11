@@ -2,7 +2,7 @@
 // FluidR3 GM soundfont, CC BY 3.0), repitched to each note. Until they have loaded, and for the
 // mandolin, strings are synthesised with Karplus-Strong plucks.
 
-import { midiToFreq } from './music.js?v=27';
+import { midiToFreq } from './music.js?v=28';
 
 // One recording every three semitones, so no note is shifted by more than a semitone and a half.
 export const GUITAR_SAMPLES = ['E2', 'G2', 'Bb2', 'Db3', 'E3', 'G3', 'Bb3', 'Db4', 'E4', 'G4', 'Bb4', 'Db5', 'E5', 'G5', 'Bb5', 'Db6'];
@@ -332,7 +332,8 @@ export class AudioEngine {
   melody(midi, when, durSec, vel, inst) {
     const ctx = this.ctx;
     if (inst === 'guitar') {
-      this.playPluck(midi, when, { vel: vel * 0.7, dur: Math.max(durSec, 0.25), bus: 'melody', T: 1.3, damp: 0.35, release: 0.1, bright: 0.8 });
+      // A flatpicked lead: full brightness and a firmer stroke than the strum, so it stands out.
+      this.playPluck(midi, when, { vel: vel * 0.95, dur: Math.max(durSec, 0.25), bus: 'melody', T: 1.3, damp: 0.35, release: 0.1, bright: 1 });
     } else if (inst === 'mandolin') {
       let t = 0;
       let v = vel * 0.6;
