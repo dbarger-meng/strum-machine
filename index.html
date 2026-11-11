@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
 <header class="masthead">
@@ -56,6 +56,14 @@
         <span id="cutTime" class="unit cut-time"></span>
       </span>
     </label>
+    <div class="field band-only" id="playWhatField" hidden>
+      <span id="playWhatLabel">Play</span>
+      <div id="playWhat" class="segmented" role="radiogroup" aria-labelledby="playWhatLabel">
+        <button type="button" role="radio" data-what="both">Melody and strum</button>
+        <button type="button" role="radio" data-what="melody">Melody only</button>
+        <button type="button" role="radio" data-what="strum">Strum only</button>
+      </div>
+    </div>
     <label class="field band-only">
       <span>Key shift</span>
       <select id="transpose"></select>
@@ -218,14 +226,12 @@
 
     <div id="melodyPanel" hidden>
       <div class="row melody-bar">
-        <label class="inline"><input id="melodyOn" type="checkbox" checked> Play melody</label>
-        <label class="inline"><input id="strumOn" type="checkbox" checked> Play strum</label>
         <label class="field">
           <span>Melody sound</span>
           <select id="inst">
-            <option value="fiddle">Fiddle</option>
-            <option value="mandolin">Mandolin</option>
             <option value="guitar">Guitar</option>
+            <option value="fiddle">Fiddle (synthesized)</option>
+            <option value="mandolin">Mandolin (synthesized)</option>
           </select>
         </label>
         <button id="detectChords" type="button" class="quiet">Work out chords</button>
@@ -250,6 +256,6 @@
   <p>Everything stays on your device. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>; other sounds are synthesized in your browser.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=27"></script>
+<script type="module" src="src/app.js?v=28"></script>
 </body>
 </html>

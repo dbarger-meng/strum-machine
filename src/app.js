@@ -1,16 +1,16 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=27';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=27';
+import { AudioEngine } from './audio.js?v=28';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=28';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=27';
-import { KINDS, LIBRARY } from './library.js?v=27';
-import { parseAny } from './parsers.js?v=27';
+} from './song.js?v=28';
+import { KINDS, LIBRARY } from './library.js?v=28';
+import { parseAny } from './parsers.js?v=28';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=27';
+} from './chart-edit.js?v=28';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -27,14 +27,14 @@ const state = {
   swing: 0,
   human: 25,
   bassRuns: 'some',
-  inst: 'fiddle',
+  inst: 'guitar',
+  instChosen: false, // true once the player has picked a melody sound themselves
   tool: 'C',
   melody: null, // { notes, totalBeats, title }
   loop: true,
   countIn: false,
   metro: false,
-  melodyOn: true,
-  strumOn: true,
+  playWhat: 'both', // with a melody loaded: 'both', 'melody' or 'strum'
   vol: { guitar: 80, bass: 90, melody: 60, click: 40 },
   mode: 'band', // 'band' plays the chart; 'metronome' plays only the click
   songId: null, // last song loaded from the library
@@ -55,7 +55,7 @@ const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
 const FOLDS = 'strumstudio.open';
 const INSTALL_HINT = 'strumstudio.installHint';
-const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode', 'songId'];
+const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode', 'songId', 'instChosen', 'playWhat'];
 let saveTimer = null;
 function persist() {
   clearTimeout(saveTimer);
@@ -70,6 +70,9 @@ function restore(obj) {
   if (!state.vol || typeof state.vol !== 'object') state.vol = {};
   state.vol = { guitar: 80, bass: 90, melody: 60, click: 40, ...state.vol };
   if (state.mode !== 'metronome') state.mode = 'band';
+  // Sessions saved before guitar became the default melody sound still say 'fiddle'.
+  if (!state.instChosen || !['guitar', 'fiddle', 'mandolin'].includes(state.inst)) state.inst = 'guitar';
+  if (!['both', 'melody', 'strum'].includes(state.playWhat)) state.playWhat = 'both';
   if (!LIBRARY.some((x) => x.id === state.songId)) state.songId = null;
   if (state.paletteType !== 'key' && !CHORD_TYPES.some((t) => t.id === state.paletteType)) state.paletteType = 'key';
   const n = Math.round(barLen() * state.sub);
@@ -115,8 +118,7 @@ function syncControls() {
   el.loop.checked = state.loop;
   el.countIn.checked = state.countIn;
   el.metro.checked = state.metro;
-  el.melodyOn.checked = state.melodyOn;
-  el.strumOn.checked = state.strumOn;
+  renderPlayWhat();
   el.paletteKey.value = state.paletteKey;
   el.otherRoot.value = state.paletteKey;
   el.vGuitar.value = state.vol.guitar;
@@ -664,6 +666,7 @@ function rebuild() {
   renderChart();
   drawRoll();
   showCutTime();
+  renderPlayWhat();
   if (!play.on) lightBeat(-1);
 }
 
@@ -704,6 +707,14 @@ function eventsInRange(b0, b1) {
 }
 const mod = (n, m) => ((n % m) + m) % m;
 
+// The strum always plays when there is no melody to choose between.
+const strumOn = () => !state.melody || state.playWhat !== 'melody';
+
+function renderPlayWhat() {
+  el.playWhatField.hidden = !state.melody;
+  for (const b of el.playWhat.querySelectorAll('[data-what]')) b.setAttribute('aria-checked', String(b.dataset.what === state.playWhat));
+}
+
 function scheduleEvent(ev) {
   const ctx = engine.ctx;
   const h = state.human / 100;
@@ -712,10 +723,10 @@ function scheduleEvent(ev) {
   const sec = (ev.dur || 0.5) * spb();
   switch (ev.kind) {
     case 'click': engine.click(t, ev.accent); break;
-    case 'strum': if (state.strumOn) engine.strum(ev.notes, t, { dir: ev.dir, vel, dur: sec, spread: ev.spread, strings: ev.strings, chord: ev.chord, ring: ev.ring }); break;
-    case 'bass': if (state.strumOn) engine.bass(ev.notes[0], t, { vel, dur: sec }); break;
-    case 'chop': if (state.strumOn) engine.chop(ev.notes, t, { vel }); break;
-    case 'melody': if (state.melodyOn) engine.melody(ev.midi, t, sec * 0.97, vel, state.inst); break;
+    case 'strum': if (strumOn()) engine.strum(ev.notes, t, { dir: ev.dir, vel, dur: sec, spread: ev.spread, strings: ev.strings, chord: ev.chord, ring: ev.ring }); break;
+    case 'bass': if (strumOn()) engine.bass(ev.notes[0], t, { vel, dur: sec }); break;
+    case 'chop': if (strumOn()) engine.chop(ev.notes, t, { vel }); break;
+    case 'melody': if (state.playWhat !== 'strum') engine.melody(ev.midi, t, sec * 0.97, vel, state.inst); break;
     default: break;
   }
 }
@@ -1011,9 +1022,14 @@ function wire() {
   el.part.addEventListener('change', () => { if (lastImport) runImport(lastImport, { part: +el.part.value }); });
   el.topVoice.addEventListener('change', () => { if (lastImport) runImport(lastImport, { part: el.partField.hidden ? undefined : +el.part.value }); });
 
-  el.melodyOn.addEventListener('change', () => { state.melodyOn = el.melodyOn.checked; });
-  el.strumOn.addEventListener('change', () => { state.strumOn = el.strumOn.checked; });
-  el.inst.addEventListener('change', () => { state.inst = el.inst.value; persist(); });
+  el.playWhat.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-what]');
+    if (!b) return;
+    state.playWhat = b.dataset.what;
+    renderPlayWhat();
+    persist();
+  });
+  el.inst.addEventListener('change', () => { state.inst = el.inst.value; state.instChosen = true; persist(); });
   el.detectChords.addEventListener('click', () => {
     if (!state.melody) return;
     if (!window.confirm('Replace the chord chart with chords guessed from the melody?')) return;
