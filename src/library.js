@@ -1,4 +1,5 @@
-// Built-in song library: common bluegrass jam songs and fiddle tunes, chords only (no lyrics).
+// Built-in song library: common bluegrass jam songs and fiddle tunes (no lyrics). Some also
+// have a melody, in melodies.js under the same id.
 // Charts follow the usual jam versions, mostly as charted by the Idaho Bluegrass Association's
 // jam notes. Bands vary, so the chart stays editable after loading. Fiddle tunes are written
 // out AABB, each part twice.
@@ -234,6 +235,98 @@ export const LIBRARY = [
       + '| A | A | E | A |\n'
       + '| A | A | E | A |',
     note: 'Both parts use the same four-bar line, eight times through.',
+  },
+  {
+    id: 'liberty', title: 'Liberty', kind: 'Fiddle tunes',
+    key: 'D', ts: '4/4', tempo: 210, preset: 'boom-chuck',
+    chart:
+      '# A part\n'
+      + '| D | D | D | D A7 |\n'
+      + '| D | D | A7 | D |\n'
+      + '| D | D | D | D A7 |\n'
+      + '| D | D | A7 | D |\n'
+      + '# B part\n'
+      + '| D | G | Em | A7 |\n'
+      + '| D | G | A7 | D |\n'
+      + '| D | G | Em | A7 |\n'
+      + '| D | G | A7 | D |',
+  },
+  {
+    id: 'red-haired-boy', title: 'Red Haired Boy', kind: 'Fiddle tunes',
+    key: 'A', ts: '4/4', tempo: 210, preset: 'boom-chuck',
+    chart:
+      '# A part\n'
+      + '| A | A D | A | G |\n'
+      + '| A | A D | A E7 | A |\n'
+      + '| A | A D | A | G |\n'
+      + '| A | A D | A E7 | A |\n'
+      + '# B part\n'
+      + '| G | G D | A | G |\n'
+      + '| A | A D | A E7 | A |\n'
+      + '| G | G D | A | G |\n'
+      + '| A | A D | A E7 | A |',
+    note: 'The G is the flat seven of A.',
+  },
+  {
+    id: 'cherokee-shuffle', title: 'Cherokee Shuffle', kind: 'Fiddle tunes',
+    key: 'A', ts: '4/4', tempo: 200, preset: 'boom-chuck',
+    chart:
+      '# A part\n'
+      + '| A | A D | A | F#m |\n'
+      + '| D | A | F#m E7 | A |\n'
+      + '| A | A D | A | F#m |\n'
+      + '| D | A | F#m E7 | A |\n'
+      + '# B part\n'
+      + '| D | A | D A | E A7 | D |\n'
+      + '| A | F#m | D | D E7 | A |\n'
+      + '| D | A | D A | E A7 | D |\n'
+      + '| A | F#m | D | D E7 | A |',
+    note: 'The B part is ten bars long, not the usual eight.',
+  },
+  {
+    id: 'turkey-in-the-straw', title: 'Turkey in the Straw', kind: 'Fiddle tunes',
+    key: 'G', ts: '4/4', tempo: 210, preset: 'boom-chuck',
+    chart:
+      '# A part\n'
+      + '| G | G | G Em | Am D7 |\n'
+      + '| G | G | G Em | D7 G |\n'
+      + '| G | G | G Em | Am D7 |\n'
+      + '| G | G | G Em | D7 G |\n'
+      + '# B part\n'
+      + '| G | G7 | C | C D7 |\n'
+      + '| G | G D7 | G Em | D7 G |\n'
+      + '| G | G7 | C | C D7 |\n'
+      + '| G | G D7 | G Em | D7 G |',
+  },
+  {
+    id: 'billy-in-the-lowground', title: 'Billy in the Lowground', kind: 'Fiddle tunes',
+    key: 'C', ts: '4/4', tempo: 200, preset: 'boom-chuck',
+    chart:
+      '# A part\n'
+      + '| C | C | Am | Am |\n'
+      + '| C | C | Am | Am G7 C |\n'
+      + '| C | C | Am | Am |\n'
+      + '| C | C | Am | Am G7 C |\n'
+      + '# B part\n'
+      + '| C | C G | Am | Am |\n'
+      + '| C | C G | Am | Am G7 C |\n'
+      + '| C | C G | Am | Am |\n'
+      + '| C | C G | Am | Am G7 C |',
+  },
+  {
+    id: 'golden-slippers', title: 'Golden Slippers', kind: 'Fiddle tunes',
+    key: 'D', ts: '4/4', tempo: 200, preset: 'boom-chuck',
+    chart:
+      '# verse\n'
+      + '| D | D A7 | D | A7 |\n'
+      + '| A7 | A7 | A7 | D |\n'
+      + '| D | D A7 | D | A7 |\n'
+      + '| A7 | A7 | A7 | D |\n'
+      + '# chorus (two endings)\n'
+      + '| D | D7 | G | Em E7 |\n'
+      + '| A7 | A7 | D A7 | D A7 |\n'
+      + '| D | D7 | G | Em E7 |\n'
+      + '| A7 | A7 | D A7 | D |',
   },
   // ---- waltzes ----
   {

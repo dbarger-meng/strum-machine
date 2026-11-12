@@ -386,3 +386,14 @@ test('a second recording is available for variety', async () => {
   assert.equal(alt.sample.midi, 46);
   assert.ok(Math.abs(alt.rate - Math.pow(2, -2 / 12)) < 1e-9);
 });
+
+test('pickup notes share a bar with the short bar before them, and the first pickup wraps to the end', () => {
+  // 1-beat pickups; each section ends on a 3-beat bar. Two 2-bar sections, each repeated.
+  const r = parseABC('X:1\nM:4/4\nL:1/4\nK:C\n|:G|c c c c|d d d::e|g g g g|c c c:|\n');
+  assert.equal(r.totalBeats, 32); // 8 bars, not 8 plus a bar for every pickup
+  assert.equal(r.notes[0].start, 0); // the tune starts on the first full bar
+  const pickups = r.notes.filter((n) => [7, 15, 23, 31].includes(n.start)).map((n) => [n.start, n.midi]);
+  // G leads into the repeat of A (beat 7), E into each B (15, 23), and the opening G wraps to the very end (31)
+  assert.deepEqual(pickups, [[7, 67], [15, 76], [23, 76], [31, 67]]);
+  assert.ok(r.notes.every((n) => n.start >= 0 && n.start < 32));
+});

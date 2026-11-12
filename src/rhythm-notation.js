@@ -1,8 +1,8 @@
 // Draw one bar of rhythm on a single-line staff: noteheads, stems, beams, flags, dots,
 // triplet numbers and (optionally) the time signature. Stems always point up.
 
-import { GLYPHS } from './notation-glyphs.js?v=28';
-import { METERS, beamGroups, noteShape } from './rhythm.js?v=28';
+import { GLYPHS } from './notation-glyphs.js?v=29';
+import { METERS, beamGroups, noteShape } from './rhythm.js?v=29';
 
 const SVG = 'http://www.w3.org/2000/svg';
 const W = 300;

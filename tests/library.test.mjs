@@ -36,3 +36,26 @@ test('fiddle tunes are written out AABB', () => {
     assert.deepEqual(B.slice(0, B.length / 2), B.slice(B.length / 2), `${s.title}: B part repeats`);
   }
 });
+
+test('library melodies match their charts and sit in the guitar range', async () => {
+  const { MELODIES } = await import('../src/melodies.js');
+  const { parseABC } = await import('../src/parsers.js');
+  assert.ok(Object.keys(MELODIES).length >= 14);
+  for (const [id, m] of Object.entries(MELODIES)) {
+    const song = LIBRARY.find((x) => x.id === id);
+    assert.ok(song, `${id}: melody belongs to a library song`);
+    const r = parseABC(m.abc);
+    const [num, den] = song.ts.split('/').map(Number);
+    assert.equal(`${r.timeSig.num}/${r.timeSig.den}`, song.ts, `${id}: same time signature`);
+    assert.equal(r.totalBeats / barLength({ num, den }), parseChart(song.chart).bars.length, `${id}: melody and chart are the same length`);
+    assert.ok(r.notes.every((n) => n.start >= 0 && n.start + n.dur <= r.totalBeats + 1e-6), `${id}: notes inside the tune`);
+    const pitches = r.notes.map((n) => n.midi + m.shift);
+    assert.ok(Math.min(...pitches) >= 52 && Math.max(...pitches) <= 86, `${id}: ${Math.min(...pitches)}..${Math.max(...pitches)} in range`);
+    // the melody is in the song's key: its last long note belongs to the home chord
+    const bl = barLength({ num, den });
+    const finalBar = r.notes.filter((n) => n.start + n.dur > r.totalBeats - bl + 1e-6); // sounding in the last bar
+    const last = finalBar.reduce((a, b) => (b.dur >= a.dur ? b : a)); // the longest note; the later one on a tie
+    const rel = (((last.midi + m.shift) - parseChord(song.key).pc) % 12 + 12) % 12;
+    assert.ok([0, 4, 7].includes(rel), `${id}: ends on a note of the home chord (got ${rel} semitones above the key note)`);
+  }
+});

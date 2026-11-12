@@ -2,7 +2,7 @@
 // Every parser returns { format, title, notes:[{midi,start,dur}], chords:[{start,name}],
 //   timeSig:{num,den}, tempo, key, totalBeats, parts, warnings } with times in quarter-note beats.
 
-import { parseChord, detectKey, mod12 } from './music.js?v=28';
+import { parseChord, detectKey, mod12 } from './music.js?v=29';
 
 const LETTER = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 const keyOf = (midi, start) => `${midi}@${Math.round(start * 1e4)}`;
@@ -59,15 +59,46 @@ export function expandMeasures(ms) {
   return out;
 }
 
+/**
+ * Put the measures on a timeline. `m.used` is how much of a bar a measure really fills.
+ * Tunes with pickup notes end each section on a short bar that the next pickup completes, so
+ * such a pair shares one bar. The opening pickup is moved to the end of the tune, where it fills
+ * the last (short) bar and leads into the repeat; if the tune leaves no room for it there, it
+ * keeps a bar of its own at the start.
+ */
 export function layoutMeasures(measures) {
   const order = expandMeasures(measures);
-  let t = 0;
+  const short = (m) => m.used !== undefined && m.used > 1e-9 && m.used < m.len - 1e-3;
+  const pickup = order.length > 1 && short(order[0]) && order[0].padded ? order[0] : null;
+  let t = pickup ? -pickup.len : 0;
   const notes = [];
   const chords = [];
-  for (const m of order) {
-    for (const n of m.notes) notes.push({ midi: n.midi, start: t + n.off, dur: n.dur, tieNext: !!n.tieNext });
-    for (const c of m.chords) chords.push({ start: t + c.off, name: c.name });
+  const place = (m, at) => {
+    for (const n of m.notes) notes.push({ midi: n.midi, start: at + n.off, dur: n.dur, tieNext: !!n.tieNext });
+    for (const c of m.chords) chords.push({ start: at + c.off, name: c.name });
+  };
+  let lastShort = null;
+  for (let i = 0; i < order.length; i++) {
+    const m = order[i];
+    const next = order[i + 1];
+    place(m, t);
+    lastShort = null;
+    if (i > 0 && short(m) && next && short(next) && Math.abs(m.used + next.used - m.len) < 1e-3) {
+      // A padded pickup already sits at the end of its bar; an unpadded one starts at 0.
+      place(next, next.padded ? t : t + m.used);
+      i++;
+    } else if (i > 0 && short(m)) lastShort = m;
     t += m.len;
+  }
+  if (pickup) {
+    const wraps = lastShort && Math.abs(lastShort.used + pickup.used - pickup.len) < 1e-3;
+    const shift = wraps ? t : pickup.len; // to the end of the tune, or a bar of its own at the start
+    for (const list of [notes, chords]) {
+      for (const x of list) if (!wraps || x.start < -1e-9) x.start += shift;
+    }
+    if (!wraps) t += pickup.len;
+    notes.sort((a, b) => a.start - b.start);
+    chords.sort((a, b) => a.start - b.start);
   }
   return { notes: mergeTies(notes), chords, totalBeats: t };
 }
@@ -313,10 +344,12 @@ export function parseABC(text) {
 
   const finalizeMeasure = () => {
     if (!cur.notes.length && cursor <= 1e-9) return false;
+    cur.used = cursor;
     if (!measures.length && cursor < barLen() - 1e-3) {
       const pad = barLen() - cursor;
       cur.notes.forEach((n) => { n.off += pad; });
       cur.chords.forEach((c) => { c.off += pad; });
+      cur.padded = true;
     }
     cur.len = barLen();
     cur.endings = currentEnding;
@@ -654,10 +687,12 @@ function readPart(part) {
       }
     }
     m.len = barLen();
+    if (maxEnd > 0) m.used = maxEnd / divisions;
     if (mi === 0 && maxEnd / divisions < m.len - 1e-3 && maxEnd > 0) {
       const pad = m.len - maxEnd / divisions;
       m.notes.forEach((n) => { n.off += pad; });
       m.chords.forEach((c) => { c.off += pad; });
+      m.padded = true;
     }
     m.endings = currentEnding;
     if (stopEnding) currentEnding = null;
