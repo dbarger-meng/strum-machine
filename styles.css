@@ -466,3 +466,13 @@ h3.sub { margin: 16px 0 2px; font: 700 1.05rem var(--slab); }
 @media (min-width: 641px) { .cut-time { flex-basis: auto; white-space: nowrap; } }
 
 .field[hidden] { display: none; }
+
+/* ---- saved tunes ---- */
+.my-tunes { margin-bottom: 6px; }
+.tune-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+.tune-list li { display: flex; gap: 4px; min-width: 0; }
+.tune-list .song-row { flex: 1; min-width: 0; height: auto; }
+.tune-del {
+  flex: 0 0 34px; background: transparent; color: var(--ink-soft); border: 1px solid var(--line); border-radius: 3px; font-size: 1.1rem;
+}
+.tune-del:hover { color: var(--chop); border-color: var(--chop); }

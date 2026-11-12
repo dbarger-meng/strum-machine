@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 <header class="masthead">
@@ -196,11 +196,17 @@
       <h2 id="h-import">Load a tune</h2>
       <span id="tuneSummary" class="fold-note">Tab, ABC, MusicXML or MIDI</span>
     </summary>
+    <div class="my-tunes">
+      <h3 class="sub">My tunes</h3>
+      <p id="tunesHint" class="hint">Tunes you load are saved on this device and listed here.</p>
+      <ul id="tuneList" class="tune-list"></ul>
+    </div>
+    <h3 class="sub">Load another</h3>
     <div id="drop" class="drop" tabindex="0">
       <p><strong>Drop a file here</strong> or <label class="file-btn">choose a file<input id="file" type="file" accept=".txt,.tab,.abc,.xml,.musicxml,.mxl,.mid,.midi,.pdf,.png,.jpg,.jpeg"></label></p>
-      <p class="hint">Guitar tab (.txt), ABC (.abc), MusicXML (.xml, .musicxml, .mxl) and MIDI (.mid) work. You can also paste tab or ABC below.</p>
+      <p class="hint">Guitar tab (.txt), ABC (.abc), MusicXML (.xml, .musicxml, .mxl) and MIDI (.mid) work. You can also paste tab, ABC or MusicXML text below.</p>
     </div>
-    <textarea id="importText" rows="6" spellcheck="false" placeholder="e|---0---2---3---2---|&#10;B|-----------------|&#10;G|-----------------|&#10;D|-----------------|&#10;A|-----------------|&#10;E|-----------------|" aria-label="Paste tab or ABC"></textarea>
+    <textarea id="importText" rows="6" spellcheck="false" placeholder="e|---0---2---3---2---|&#10;B|-----------------|&#10;G|-----------------|&#10;D|-----------------|&#10;A|-----------------|&#10;E|-----------------|" aria-label="Paste tab, ABC or MusicXML"></textarea>
     <div class="row import-opts">
       <label class="field">
         <span>Tab timing</span>
@@ -253,9 +259,9 @@
 </main>
 
 <footer>
-  <p>Everything stays on your device. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>; other sounds are synthesized in your browser.</p>
+  <p>Everything stays on your device. Library melodies from the <a href="https://abc.sourceforge.net/NMD/">Nottingham Music Database</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>; other sounds are synthesized in your browser.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=28"></script>
+<script type="module" src="src/app.js?v=29"></script>
 </body>
 </html>

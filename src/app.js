@@ -1,16 +1,17 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=28';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=28';
+import { AudioEngine } from './audio.js?v=29';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=29';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=28';
-import { KINDS, LIBRARY } from './library.js?v=28';
-import { parseAny } from './parsers.js?v=28';
+} from './song.js?v=29';
+import { KINDS, LIBRARY } from './library.js?v=29';
+import { MELODIES } from './melodies.js?v=29';
+import { parseAny, parseABC } from './parsers.js?v=29';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=28';
+} from './chart-edit.js?v=29';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -38,6 +39,7 @@ const state = {
   vol: { guitar: 80, bass: 90, melody: 60, click: 40 },
   mode: 'band', // 'band' plays the chart; 'metronome' plays only the click
   songId: null, // last song loaded from the library
+  tuneId: null, // the saved tune (My tunes) that is loaded, if any
   libraryKind: 'All',
   paletteKey: 7,
   paletteType: 'key', // 'key' (each chord as it falls in the key) or a chord type for every chip
@@ -45,6 +47,7 @@ const state = {
 };
 let track = { events: [], loopLen: 0, barLen: 4, totalBars: 0, chordBars: [] };
 let lastImport = null;
+let lastImportName = ''; // file name of the last import, used when the tune has no title
 
 const parseTimeSig = (s) => { const [num, den] = s.split('/').map(Number); return { num, den }; };
 const timeSig = () => parseTimeSig(state.ts);
@@ -55,12 +58,15 @@ const STORE = 'strumstudio.session';
 const PATTERNS = 'strumstudio.patterns';
 const FOLDS = 'strumstudio.open';
 const INSTALL_HINT = 'strumstudio.installHint';
-const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode', 'songId', 'instChosen', 'playWhat'];
+const TUNES = 'strumstudio.tunes';
+const MAX_TUNES = 40;
+const PERSIST = ['tempo', 'ts', 'sub', 'cells', 'chart', 'transpose', 'swing', 'human', 'bassRuns', 'inst', 'loop', 'countIn', 'metro', 'vol', 'paletteKey', 'paletteType', 'mode', 'songId', 'instChosen', 'playWhat', 'tuneId'];
 let saveTimer = null;
 function persist() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try { localStorage.setItem(STORE, JSON.stringify(Object.fromEntries(PERSIST.map((k) => [k, state[k]])))); } catch (e) { /* storage unavailable */ }
+    updateSavedTune();
   }, 300);
 }
 function restore(obj) {
@@ -510,7 +516,7 @@ function renderLibrary() {
     title.textContent = x.title;
     const meta = document.createElement('span');
     meta.className = 'song-meta';
-    meta.textContent = `${x.key} · ${x.ts === '3/4' ? 'waltz' : x.ts} · ${x.tempo} bpm`;
+    meta.textContent = `${x.key} · ${x.ts === '3/4' ? 'waltz' : x.ts} · ${x.tempo} bpm${MELODIES[x.id] ? ' · ♪ melody' : ''}`;
     b.append(title, meta);
     if (x.note) {
       const n = document.createElement('span');
@@ -531,7 +537,118 @@ function renderLibrary() {
   el.librarySummary.textContent = current ? `Last loaded: ${current.title}` : `${LIBRARY.length} songs and fiddle tunes`;
 }
 
+// ---------- melodies: library songs and saved tunes ----------
+function libraryMelody(id) {
+  const m = MELODIES[id];
+  if (!m) return null;
+  try {
+    const r = parseABC(m.abc);
+    const song = LIBRARY.find((x) => x.id === id);
+    return { notes: r.notes.map((n) => ({ ...n, midi: n.midi + m.shift })), totalBeats: r.totalBeats, title: song ? song.title : r.title };
+  } catch (e) { return null; }
+}
+
+function readTunes() {
+  try { const list = JSON.parse(localStorage.getItem(TUNES)); return Array.isArray(list) ? list : []; } catch (e) { return []; }
+}
+function writeTunes(list) {
+  try { localStorage.setItem(TUNES, JSON.stringify(list.slice(0, MAX_TUNES))); return true; } catch (e) { return false; }
+}
+const tuneMelody = (t) => ({ notes: t.notes.map(([midi, start, dur]) => ({ midi, start, dur })), totalBeats: t.totalBeats, title: t.title });
+
+/** Save the tune just imported (replacing one with the same title) and make it the loaded one. */
+function saveTune(title) {
+  const list = readTunes().filter((t) => t.title !== title);
+  const id = `t${Date.now().toString(36)}`;
+  list.unshift({
+    id, title, ts: state.ts, tempo: state.tempo, chart: state.chart, paletteKey: state.paletteKey, transpose: 0,
+    totalBeats: state.melody.totalBeats, notes: state.melody.notes.map((n) => [n.midi, +n.start.toFixed(4), +n.dur.toFixed(4)]),
+  });
+  if (!writeTunes(list)) return false;
+  state.tuneId = id;
+  return true;
+}
+
+// Keep the saved copy in step with edits to the loaded tune's chart, tempo and key shift.
+function updateSavedTune() {
+  if (!state.tuneId || !state.melody) return;
+  const list = readTunes();
+  const t = list.find((x) => x.id === state.tuneId);
+  if (!t) return;
+  Object.assign(t, { ts: state.ts, tempo: state.tempo, chart: state.chart, paletteKey: state.paletteKey, transpose: state.transpose });
+  writeTunes(list);
+}
+
+function renderTunes() {
+  const list = readTunes();
+  el.tunesHint.hidden = list.length > 0;
+  el.tuneList.innerHTML = '';
+  for (const t of list) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'song-row';
+    b.dataset.id = t.id;
+    if (t.id === state.tuneId) b.setAttribute('aria-current', 'true');
+    const title = document.createElement('span');
+    title.className = 'song-title';
+    title.textContent = t.title;
+    const meta = document.createElement('span');
+    meta.className = 'song-meta';
+    meta.textContent = `${t.ts} · ${t.tempo} bpm · ${t.notes.length} notes`;
+    b.append(title, meta);
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'tune-del';
+    del.dataset.del = t.id;
+    del.textContent = '×';
+    del.setAttribute('aria-label', `Delete ${t.title}`);
+    del.title = `Delete ${t.title}`;
+    li.append(b, del);
+    el.tuneList.appendChild(li);
+  }
+}
+
+function loadTune(id) {
+  const t = readTunes().find((x) => x.id === id);
+  if (!t) return;
+  if (play.on) stopPlay();
+  state.ts = t.ts;
+  state.tempo = t.tempo;
+  state.transpose = t.transpose || 0;
+  state.chart = t.chart;
+  state.paletteKey = t.paletteKey;
+  state.placing = null;
+  state.mode = 'band';
+  state.cells = defaultCells(barLen(), state.sub);
+  state.melody = tuneMelody(t);
+  state.tuneId = t.id;
+  state.songId = null;
+  lastImport = null;
+  el.partField.hidden = true;
+  el.melodyPanel.hidden = false;
+  el.tuneSummary.textContent = `Playing "${t.title}"`;
+  syncControls();
+  changed({ full: true });
+  renderLibrary();
+  renderTunes();
+  showMsg(`Loaded "${t.title}" from My tunes.`);
+}
+
+// After a reload, put back the melody that goes with the saved session.
+function restoreMelody() {
+  const tune = state.tuneId && readTunes().find((x) => x.id === state.tuneId);
+  if (tune) state.melody = tuneMelody(tune);
+  else {
+    state.tuneId = null;
+    if (state.songId) state.melody = libraryMelody(state.songId);
+  }
+  el.melodyPanel.hidden = !state.melody;
+  if (state.melody) el.tuneSummary.textContent = `Playing "${state.melody.title}"`;
+}
+
 function snapshot() {
+  updateSavedTune();
   return { saved: JSON.parse(JSON.stringify(Object.fromEntries(PERSIST.map((k) => [k, state[k]])))), melody: state.melody };
 }
 
@@ -539,10 +656,12 @@ function restoreSnapshot(snap) {
   Object.assign(state, snap.saved);
   state.melody = snap.melody;
   el.melodyPanel.hidden = !state.melody;
+  el.tuneSummary.textContent = state.melody ? `Playing "${state.melody.title}"` : 'Tab, ABC, MusicXML or MIDI';
   if (play.on) stopPlay();
   syncControls();
   changed({ full: true });
   renderLibrary();
+  renderTunes();
 }
 
 function loadSong(id) {
@@ -560,15 +679,19 @@ function loadSong(id) {
   state.mode = 'band';
   const preset = presetsFor(barLen()).find((p) => p.id === x.preset) || presetsFor(barLen())[0];
   state.cells = resampleCells(preset.cells, 2, state.sub);
-  state.melody = null;
-  el.melodyPanel.hidden = true;
-  el.tuneSummary.textContent = 'Tab, ABC, MusicXML or MIDI';
+  state.melody = libraryMelody(x.id);
+  state.tuneId = null;
+  lastImport = null;
+  el.partField.hidden = true;
+  el.melodyPanel.hidden = !state.melody;
+  el.tuneSummary.textContent = state.melody ? `Playing "${x.title}"` : 'Tab, ABC, MusicXML or MIDI';
   state.songId = x.id;
   syncControls();
   changed({ full: true });
   renderLibrary();
+  renderTunes();
   el.libraryMsg.innerHTML = '';
-  el.libraryMsg.append(`Loaded ${x.title} in ${x.key} at ${x.tempo} bpm. Press Play, or use Key shift to change key. `);
+  el.libraryMsg.append(`Loaded ${x.title} in ${x.key} at ${x.tempo} bpm${state.melody ? ', with its melody (use the Play switch by the Play button for melody only)' : ' (chords only: no melody for this one)'}. `);
   const undo = document.createElement('button');
   undo.type = 'button';
   undo.className = 'quiet';
@@ -898,11 +1021,19 @@ function applyImport(r) {
 
   el.melodyPanel.hidden = false;
   const bars = Math.ceil(r.totalBeats / bl - 1e-6);
-  showMsg(`Loaded ${r.title ? `"${r.title}": ` : ''}${r.notes.length} notes over ${bars} bars, in ${keyLabel(r.key)}. ${how}${r.warnings.length ? ' ' + r.warnings.join(' ') : ''}`);
+  const name = r.title || lastImportName || 'Untitled tune';
+  state.melody.title = name;
+  state.songId = null;
+  const saved = saveTune(name);
+  el.tuneSummary.textContent = `Playing "${name}"`;
+  showMsg(`Loaded "${name}": ${r.notes.length} notes over ${bars} bars, in ${keyLabel(r.key)}. ${how}${saved ? ' Saved to My tunes.' : ' (Could not save it to My tunes: storage is full or unavailable.)'}${r.warnings.length ? ' ' + r.warnings.join(' ') : ''}`);
   changed({ full: true });
+  renderLibrary();
+  renderTunes();
 }
 
 async function handleFile(file) {
+  lastImportName = file.name.replace(/\.[^.]+$/, '');
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (['pdf', 'png', 'jpg', 'jpeg'].includes(ext)) {
     showMsg('Scanned sheet music (PDF or photo) needs music recognition, which this page cannot do. Open it in a program like MuseScore or Audiveris, export MusicXML or MIDI, and load that file here.', true);
@@ -1016,7 +1147,8 @@ function wire() {
     if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   });
   el.importBtn.addEventListener('click', () => {
-    if (!el.importText.value.trim()) { showMsg('Paste some tab or ABC text first, or choose a file.', true); return; }
+    if (!el.importText.value.trim()) { showMsg('Paste some tab, ABC or MusicXML text first, or choose a file.', true); return; }
+    lastImportName = `Pasted tune ${readTunes().length + 1}`;
     runImport(el.importText.value);
   });
   el.part.addEventListener('change', () => { if (lastImport) runImport(lastImport, { part: +el.part.value }); });
@@ -1037,7 +1169,24 @@ function wire() {
     state.chart = formatChart(names);
     changed();
   });
+  el.tuneList.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      const t = readTunes().find((x) => x.id === del.dataset.del);
+      if (!t || !window.confirm(`Delete "${t.title}" from My tunes?`)) return;
+      writeTunes(readTunes().filter((x) => x.id !== t.id));
+      if (state.tuneId === t.id) state.tuneId = null;
+      persist();
+      renderTunes();
+      return;
+    }
+    const row = e.target.closest('.song-row');
+    if (row) loadTune(row.dataset.id);
+  });
   el.clearMelody.addEventListener('click', () => {
+    updateSavedTune();
+    state.tuneId = null;
+    renderTunes();
     state.melody = null;
     el.melodyPanel.hidden = true;
     el.tuneSummary.textContent = 'Tab, ABC, MusicXML or MIDI';
@@ -1086,6 +1235,7 @@ function wireInstall() {
 function init() {
   fillStaticSelects();
   loadInitial();
+  restoreMelody();
   syncControls();
   renderPalette();
   renderSaved();
@@ -1093,6 +1243,7 @@ function init() {
   wireChart();
   wireFolds();
   wireLibrary();
+  renderTunes();
   wireInstall();
   engine.preload();
   changed({ full: true });

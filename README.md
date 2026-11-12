@@ -27,7 +27,7 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 ## What it does
 
-**Song library.** 34 common bluegrass jam songs, gospel songs, fiddle tunes and waltzes (chords only, no lyrics). One tap loads the chart, key, tempo, time signature and strum pattern; Undo puts back what you had. Charts follow the usual jam versions (mostly as charted in the Idaho Bluegrass Association's jam notes) and stay editable. Add songs in `src/library.js`; `npm test` checks every chart.
+**Song library.** 40 common bluegrass jam songs, gospel songs, fiddle tunes and waltzes (no lyrics). 14 of them, marked "♪ melody", also load their melody, which the Play switch can play alone or over the strum. One tap loads the chart, key, tempo, time signature and strum pattern; Undo puts back what you had. Charts follow the usual jam versions (mostly as charted in the Idaho Bluegrass Association's jam notes) and stay editable. Add songs in `src/library.js`; `npm test` checks every chart.
 
 **Strum pattern editor.** One bar on a beat grid (eighth or sixteenth notes). Paint each step with a root bass, fifth bass, chuck, down strum, up strum, chop or rest. Presets cover boom-chuck, boom-chuck-a, boom-strum, mandolin-style chop, and waltz and 2/4 versions. Swing and looseness sliders shape the feel. Save patterns in your browser or copy a share link.
 
@@ -58,6 +58,12 @@ Browsers block ES modules opened from `file://`, so use `npm start` (or any stat
 
 The melody plays on the recorded guitar by default (synthesized fiddle and mandolin are also offered). With a melody loaded, a switch beside Play chooses melody and strum, melody only, or strum only. If the file has no chord symbols, chords are guessed from the melody and written into the chart so you can edit them.
 
+## My tunes
+
+Every tune you load (file or pasted text) is saved in the browser under **My tunes** in the Load a tune section, with its chart, tempo and key shift, and edits to the loaded tune are saved as you make them. Tap one to load it again; × deletes it. Up to 40 are kept, on this device only.
+
+Pickup notes: a tune that starts with pickup notes plays them at the end of the loop, leading into the repeat, so the melody stays lined up with the bars.
+
 ## Limits
 
 - **Scanned PDFs and photos of sheet music are not supported.** Reading notation from an image needs optical music recognition, which cannot run in a plain web page. Convert the page in MuseScore or Audiveris to MusicXML or MIDI first.
@@ -75,6 +81,8 @@ Icons are drawn in `icons/icon.svg`; `node scripts/make-icons.mjs` regenerates t
 
 ## Credits
 
+Library melodies in `src/melodies.js` are transcriptions of traditional tunes from the Nottingham Music Database (maintained by Eric Foxley; ABC version at abc.sourceforge.net/NMD, cleaned copy at github.com/jukedeck/nottingham-dataset), except Amazing Grace, which was written out for this app. The database is published for free download but carries no explicit license.
+
 Notation symbols in `src/notation-glyphs.js` are outlines derived from the Bravura font by Steinberg Media Technologies GmbH, used under the SIL Open Font License 1.1 (`licenses/Bravura-OFL.txt`); that file stays under the same license.
 
 Guitar recordings in `samples/guitar/` come from the FluidR3 GM soundfont by Frank Wen, as rendered to MP3 by [gleitz/midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts), and are used under the [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/) license.
@@ -86,6 +94,7 @@ index.html, styles.css
 src/music.js     chords, voicings, bass notes, key and chord detection
 src/song.js      chart parsing, presets, pattern to timed events
 src/library.js   built-in song library (chord charts, keys, tempos, patterns)
+src/melodies.js  melodies for library songs (ABC), by song id
 fretboard.html   fretboard trainer page
 src/fretboard.js trainer logic: positions, staff spelling, answer checking
 src/trainer.js   trainer page: staff drawing, fretboard, scoring, settings
