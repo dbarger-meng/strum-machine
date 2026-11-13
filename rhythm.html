@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=31">
+  <link rel="stylesheet" href="styles.css?v=32">
 </head>
 <body>
 <header class="masthead">
@@ -43,10 +43,14 @@
         <span id="meterLabel">Meter</span>
         <div id="meter" class="segmented" role="radiogroup" aria-labelledby="meterLabel"></div>
       </div>
-      <label class="field slider">
+      <div class="field tempo">
         <span id="tempoLabel">Tempo</span>
-        <input id="tempo" type="range" min="40" max="140" value="72" aria-describedby="tempoLabel">
-      </label>
+        <span class="tempo-inputs">
+          <button id="tempoDown" type="button" class="tempo-step" aria-label="Slower: tempo down 1 (hold to keep going)">−</button>
+          <input id="tempo" type="range" min="40" max="140" value="72" aria-describedby="tempoLabel">
+          <button id="tempoUp" type="button" class="tempo-step" aria-label="Faster: tempo up 1 (hold to keep going)">+</button>
+        </span>
+      </div>
       <label class="inline"><input id="clickAlong" type="checkbox"> Click along</label>
     </div>
     <div class="row rhythm-actions">
@@ -93,6 +97,6 @@
   <p>Everything stays on your device. Notation symbols from the Bravura font by Steinberg, used under the <a href="licenses/Bravura-OFL.txt">SIL Open Font License</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
 </footer>
 
-<script type="module" src="src/rhythm-page.js?v=31"></script>
+<script type="module" src="src/rhythm-page.js?v=32"></script>
 </body>
 </html>

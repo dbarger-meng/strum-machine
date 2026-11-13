@@ -1,9 +1,9 @@
 // Offline support. Every shipped file is cached on install so the app opens with no signal.
 // ASSET_VERSION matches the ?v= stamps in index.html and src/; `npm run bump` raises both.
-const ASSET_VERSION = 31;
+const ASSET_VERSION = 32;
 const CACHE = `strum-studio-v${ASSET_VERSION}`;
 const SRC = [
-  'app.js', 'audio.js', 'chart-edit.js', 'fretboard.js', 'intervals-page.js', 'intervals.js', 'library.js', 'melodies.js', 'music.js', 'neck.js',
+  'app.js', 'audio.js', 'chart-edit.js', 'fretboard.js', 'hold-step.js', 'intervals-page.js', 'intervals.js', 'library.js', 'melodies.js', 'music.js', 'neck.js',
   'notation-glyphs.js', 'parsers.js', 'rhythm-notation.js', 'rhythm-page.js', 'rhythm.js',
   'scales-page.js', 'shapes.js', 'song.js', 'trainer.js', 'triads-page.js',
 ];

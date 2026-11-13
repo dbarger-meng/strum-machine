@@ -1,8 +1,8 @@
 // Chord chart editing: the chord palette for a key, and drag-and-drop edits on a list of bars.
 // A chart is an array of bars, each an array of chord names, e.g. [['G'], ['C', 'D']].
 
-import { FLAT_MAJOR_TONICS, mod12, parseChord, pcName } from './music.js?v=31';
-import { parseChart, formatChart } from './song.js?v=31';
+import { FLAT_MAJOR_TONICS, mod12, parseChord, pcName } from './music.js?v=32';
+import { parseChart, formatChart } from './song.js?v=32';
 
 export const MAX_CHORDS_PER_BAR = 4;
 

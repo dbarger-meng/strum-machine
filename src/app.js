@@ -1,17 +1,18 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=31';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=31';
+import { AudioEngine } from './audio.js?v=32';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=32';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=31';
-import { KINDS, LIBRARY } from './library.js?v=31';
-import { MELODIES } from './melodies.js?v=31';
-import { parseAny, parseABC } from './parsers.js?v=31';
+} from './song.js?v=32';
+import { KINDS, LIBRARY } from './library.js?v=32';
+import { MELODIES } from './melodies.js?v=32';
+import { holdToStep } from './hold-step.js?v=32';
+import { parseAny, parseABC } from './parsers.js?v=32';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=31';
+} from './chart-edit.js?v=32';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
@@ -1065,28 +1066,8 @@ function wire() {
 
   el.tempo.addEventListener('input', () => setTempo(+el.tempo.value));
   // - and +: one tap is one beat per minute; holding keeps stepping, faster after a moment.
-  for (const [btn, dir] of [[el.tempoDown, -1], [el.tempoUp, 1]]) {
-    let wait = null;
-    let repeat = null;
-    let held = false;
-    const stop = () => { clearTimeout(wait); clearInterval(repeat); wait = repeat = null; };
-    btn.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      held = false;
-      stop();
-      wait = setTimeout(() => {
-        held = true;
-        let n = 0;
-        repeat = setInterval(() => { n++; setTempo(state.tempo + dir * (n > 15 ? 5 : 1)); }, 110);
-      }, 450);
-    });
-    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, stop);
-    btn.addEventListener('click', () => {
-      if (held) { held = false; return; } // the hold already did the stepping
-      setTempo(state.tempo + dir);
-    });
-    btn.addEventListener('contextmenu', (e) => e.preventDefault()); // long-press on phones
-  }
+  holdToStep(el.tempoDown, (n) => setTempo(state.tempo - n));
+  holdToStep(el.tempoUp, (n) => setTempo(state.tempo + n));
   el.tempoNum.addEventListener('change', () => setTempo(+el.tempoNum.value));
   el.transpose.addEventListener('change', () => { state.transpose = +el.transpose.value; changed(); });
   el.timeSig.addEventListener('change', () => {

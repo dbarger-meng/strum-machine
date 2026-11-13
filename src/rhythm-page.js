@@ -1,10 +1,11 @@
 // Rhythm dictation page: play four bars, let the player write the rhythm, then check it.
 
-import { AudioEngine } from './audio.js?v=31';
-import { drawBar } from './rhythm-notation.js?v=31';
+import { holdToStep } from './hold-step.js?v=32';
+import { AudioEngine } from './audio.js?v=32';
+import { drawBar } from './rhythm-notation.js?v=32';
 import {
   METERS, VALUES, canFill, randomDictation, addValue, undoLast, remaining, sameRhythm,
-} from './rhythm.js?v=31';
+} from './rhythm.js?v=32';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.rhythm';
@@ -283,7 +284,10 @@ function init() {
     renderBars();
   });
   $('clearBar').addEventListener('click', () => { if (!checked) { answer[selected] = []; renderBars(); } });
-  $('tempo').addEventListener('input', () => { settings.tempo[meter()] = +$('tempo').value; save(); renderSettings(); });
+  const setTempo = (v) => { settings.tempo[meter()] = Math.max(40, Math.min(140, Math.round(v))); save(); renderSettings(); };
+  $('tempo').addEventListener('input', () => setTempo(+$('tempo').value));
+  holdToStep($('tempoDown'), (n) => setTempo(settings.tempo[meter()] - n));
+  holdToStep($('tempoUp'), (n) => setTempo(settings.tempo[meter()] + n));
   $('clickAlong').addEventListener('change', () => { settings.click = $('clickAlong').checked; save(); });
   $('countIn').addEventListener('change', () => { settings.countInBars = +$('countIn').value; save(); });
   $('resetScore').addEventListener('click', () => { Object.assign(stats, { bars: 0, barsRight: 0, perfect: 0, tries: 0 }); save(); renderScore(); });
