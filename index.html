@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=29">
+  <link rel="stylesheet" href="styles.css?v=31">
 </head>
 <body>
 <header class="masthead">
@@ -47,15 +47,17 @@
         <button type="button" role="radio" data-mode="metronome">Metronome</button>
       </div>
     </div>
-    <label class="field tempo">
+    <div class="field tempo">
       <span>Tempo</span>
       <span class="tempo-inputs">
+        <button id="tempoDown" type="button" class="tempo-step" aria-label="Slower: tempo down 1 (hold to keep going)">−</button>
         <input id="tempo" type="range" min="50" max="320" value="180" aria-label="Tempo slider">
+        <button id="tempoUp" type="button" class="tempo-step" aria-label="Faster: tempo up 1 (hold to keep going)">+</button>
         <input id="tempoNum" type="number" min="50" max="320" value="180" aria-label="Tempo in beats per minute">
         <span class="unit">bpm</span>
         <span id="cutTime" class="unit cut-time"></span>
       </span>
-    </label>
+    </div>
     <div class="field band-only" id="playWhatField" hidden>
       <span id="playWhatLabel">Play</span>
       <div id="playWhat" class="segmented" role="radiogroup" aria-labelledby="playWhatLabel">
@@ -262,6 +264,6 @@
   <p>Everything stays on your device. Library melodies from the <a href="https://abc.sourceforge.net/NMD/">Nottingham Music Database</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>; other sounds are synthesized in your browser.</p>
 </footer>
 
-<script type="module" src="src/app.js?v=29"></script>
+<script type="module" src="src/app.js?v=31"></script>
 </body>
 </html>
