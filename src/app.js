@@ -1,18 +1,18 @@
 // UI, scheduling and import flow.
 
-import { AudioEngine } from './audio.js?v=34';
-import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=34';
+import { AudioEngine } from './audio.js?v=35';
+import { FLAT_MAJOR_TONICS, keyMajorTonic, mod12, parseChord, pcName, transposeChord, detectChords } from './music.js?v=35';
 import {
   CELLS, barLength, buildEvents, clickBeats, chordsToChart, defaultCells, formatChart, parseChart, presetsFor, resampleCells,
-} from './song.js?v=34';
-import { KINDS, LIBRARY } from './library.js?v=34';
-import { MELODIES } from './melodies.js?v=34';
-import { holdToStep } from './hold-step.js?v=34';
-import { parseAny, parseABC } from './parsers.js?v=34';
+} from './song.js?v=35';
+import { KINDS, LIBRARY } from './library.js?v=35';
+import { MELODIES } from './melodies.js?v=35';
+import { holdToStep } from './hold-step.js?v=35';
+import { parseAny, parseABC } from './parsers.js?v=35';
 import {
   CHORD_TYPES, MAX_CHORDS_PER_BAR, applyDrop, barsFromChart, chartFromBars, chartKey, chordName, keyUsesFlats,
   paletteFor, removeBar,
-} from './chart-edit.js?v=34';
+} from './chart-edit.js?v=35';
 
 const $ = (id) => document.getElementById(id);
 const el = new Proxy({}, { get: (t, k) => t[k] || (t[k] = $(k)) });
