@@ -55,6 +55,6 @@ export function playNotes(engine, midis, { gap = 0.25, dur = 0.6 } = {}) {
   const ctx = engine.ensure();
   engine.stopAll();
   const t0 = ctx.currentTime + 0.05;
-  midis.forEach((m, i) => engine.playPluck(m, t0 + i * gap, { vel: 0.55, dur, release: 0.15, bright: 0.85 }));
+  midis.forEach((m, i) => engine.playPluck(m, t0 + i * gap, { vel: 0.85, dur, release: 0.15, bright: 0.85 }));
   return t0 + midis.length * gap + dur;
 }

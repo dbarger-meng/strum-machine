@@ -48,7 +48,7 @@ function play(midis, { together = false } = {}) {
   if (!settings.sound) return;
   const ctx = engine.ensure();
   const t = ctx.currentTime + 0.02;
-  midis.forEach((m, i) => engine.playPluck(m, t + (together ? i * 0.02 : i * 0.55), { vel: 0.55, dur: 1.2, release: 0.2, bright: 0.85 }));
+  midis.forEach((m, i) => engine.playPluck(m, t + (together ? i * 0.02 : i * 0.55), { vel: 0.85, dur: 1.2, release: 0.2, bright: 0.85 }));
 }
 function hear() {
   if (!q) return;

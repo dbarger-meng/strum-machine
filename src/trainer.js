@@ -146,12 +146,8 @@ const allOf = (n) => (n === 2 ? 'both' : `all ${n}`);
 
 function play(midi) {
   if (!settings.sound) return;
-  engine.ensure();
-  const sound = () => engine.playPluck(midi, engine.ctx.currentTime + 0.02, { vel: 0.55, dur: 1.4, release: 0.25, bright: 0.85 });
-  // Until the guitar recordings are ready, wait for them (briefly) rather than play the
-  // harsher synthesized fallback.
-  if (engine.samples || !engine.ready) { sound(); return; }
-  Promise.race([engine.ready, new Promise((r) => { setTimeout(r, 1500); })]).then(sound);
+  const ctx = engine.ensure();
+  engine.playPluck(midi, ctx.currentTime + 0.01, { vel: 0.9, dur: 1.4, release: 0.25, bright: 0.85 });
 }
 
 function finish(gotIt) {
