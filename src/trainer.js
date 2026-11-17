@@ -1,10 +1,15 @@
 // Fretboard trainer page: draw a note on a treble staff, let the player tap it on the neck.
 
-import { AudioEngine } from './audio.js?v=32';
-import { GLYPHS } from './notation-glyphs.js?v=32';
+import { AudioEngine } from './audio.js?v=34';
+import { GLYPHS } from './notation-glyphs.js?v=34';
 import {
   STRINGS, positionsFor, spell, ledgerLines, nextQuestion, answersFor, noteLabel, judgeTap, positionKey, hasInlay,
-} from './fretboard.js?v=32';
+} from './fretboard.js?v=34';
+
+import { renderNeck } from './neck.js?v=34';
+import {
+  recordQuestion, heatValue, heatBin, worstPlaces, HEAT_COLOURS, HEAT_INK,
+} from './heatmap.js?v=34';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.fretboard';
@@ -19,19 +24,26 @@ let targets = []; // every place the current note is played on the chosen string
 let found = new Set();
 let locked = false;
 let advanceTimer = null;
+let heat = {}; // practice heatmap, by position key: see heatmap.js
+let heatMetric = 'misses';
+let shownAt = 0; // when the current note appeared
+let lastFindAt = 0; // when the last place was found (or the note appeared)
+let finds = {}; // this question: position key -> { ms, missed } for places found by tapping
 
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE));
     if (saved && saved.settings) Object.assign(settings, saved.settings);
     if (saved && Number.isInteger(saved.best)) stats.best = saved.best;
+    if (saved && saved.heat && typeof saved.heat === 'object') heat = saved.heat;
+    if (saved && ['misses', 'time'].includes(saved.heatMetric)) heatMetric = saved.heatMetric;
   } catch (e) { /* first visit */ }
   if (![4, 7, 12, 15].includes(settings.maxFret)) settings.maxFret = 12;
   settings.strings = (Array.isArray(settings.strings) ? settings.strings : []).filter((s) => s >= 0 && s <= 5);
   if (!settings.strings.length) settings.strings = [0, 1, 2, 3, 4, 5];
 }
 function save() {
-  try { localStorage.setItem(STORE, JSON.stringify({ settings, best: stats.best })); } catch (e) { /* storage unavailable */ }
+  try { localStorage.setItem(STORE, JSON.stringify({ settings, best: stats.best, heat, heatMetric })); } catch (e) { /* storage unavailable */ }
 }
 
 const positions = () => positionsFor({ strings: settings.strings, maxFret: settings.maxFret });
@@ -120,6 +132,8 @@ function newQuestion() {
   found = new Set();
   missed = false;
   locked = false;
+  finds = {};
+  shownAt = lastFindAt = performance.now();
   clearMarks();
   drawStaff();
   $('feedback').className = 'feedback';
@@ -137,6 +151,11 @@ function play(midi) {
 }
 
 function finish(gotIt) {
+  heat = recordQuestion(heat, targets.map((p) => {
+    const f = finds[positionKey(p)];
+    return { key: positionKey(p), ms: f ? f.ms : null, missed: f ? f.missed : true };
+  }));
+  renderHeat();
   stats.total++;
   if (gotIt) {
     stats.right++;
@@ -164,6 +183,9 @@ function tap(s, f) {
     $('feedback').textContent = `That's ${noteLabel(spell(midi + 12, flat))}. Try again${targets.length > 1 ? ` (${progress()})` : ''}.`;
     return;
   }
+  const now = performance.now();
+  finds[positionKey({ string: s, fret: f })] = { ms: now - lastFindAt, missed };
+  lastFindAt = now;
   c.classList.remove('miss');
   c.classList.add('hit');
   $('feedback').className = 'feedback good';
@@ -189,6 +211,82 @@ function showMe() {
     : `${noteLabel(question.written)} is here. Next note in a moment.`;
   finish(false);
   advanceTimer = setTimeout(newQuestion, 2200);
+}
+
+// ---------- practice heatmap ----------
+const placeName = (key) => {
+  const [s, f] = key.split(':').map(Number);
+  const st = STRINGS.find((x) => x.index === s);
+  return { st, fret: f, where: `${st.name} string, ${f === 0 ? 'open' : `fret ${f}`}`, note: noteLabel(spell(st.open + f + 12)) };
+};
+const seconds = (v) => `${v < 10 ? v.toFixed(1) : Math.round(v)}s`;
+
+function renderHeat() {
+  const fold = $('heatFold');
+  for (const b of $('heatMetric').querySelectorAll('[data-metric]')) b.setAttribute('aria-checked', String(b.dataset.metric === heatMetric));
+  const entries = Object.entries(heat).map(([key, h]) => ({ key, h, value: heatValue(h, heatMetric) })).filter((x) => x.value !== null);
+  const practised = Object.values(heat).filter((h) => h.asked).length;
+  $('heatSummary').textContent = practised ? `${practised} spot${practised === 1 ? '' : 's'} practised` : 'Starts filling in as you play';
+  if (!fold.open) return;
+  const misses = heatMetric === 'misses';
+  $('heatHelp').textContent = misses
+    ? 'How many times you missed each spot: a wrong tap before finding it, or Show me. Darker means more misses.'
+    : 'Your average time to find each spot, in seconds, from when the note appeared (or from your last find). Darker means slower.';
+  const shown = misses ? entries.filter((x) => x.value > 0) : entries;
+  const lo = shown.length ? Math.min(...shown.map((x) => x.value)) : 0;
+  const hi = shown.length ? Math.max(...shown.map((x) => x.value)) : 0;
+  const marks = entries.map(({ key, h, value }) => {
+    const { where, note } = placeName(key);
+    const [string, fret] = key.split(':').map(Number);
+    const avg = h.found ? ` Average time to find: ${seconds(h.ms / h.found / 1000)}.` : '';
+    const title = `${where} (${note}): asked ${h.asked} time${h.asked === 1 ? '' : 's'}, missed ${h.misses}.${avg}`;
+    if (misses && value === 0) return { string, fret, label: '0', cls: 'heat-zero', title };
+    const bin = heatBin(value, lo, hi);
+    // Dots are small on phones, so times show as a bare number; the legend and list say seconds.
+    return { string, fret, label: misses ? String(value) : seconds(value).replace('s', ''), cls: 'heat', bg: HEAT_COLOURS[bin], fg: HEAT_INK[bin], title };
+  });
+  renderNeck($('heatNeck'), { maxFret: Math.max(settings.maxFret, ...entries.map((x) => +x.key.split(':')[1])), marks });
+
+  const legend = $('heatLegend');
+  legend.innerHTML = '';
+  if (shown.length) {
+    const fmt = misses ? (v) => String(Math.round(v)) : seconds;
+    const lowLabel = document.createElement('span');
+    lowLabel.textContent = `${misses ? 'Fewest' : 'Fastest'} (${fmt(lo)})`;
+    legend.appendChild(lowLabel);
+    for (const c of HEAT_COLOURS) {
+      const sw = document.createElement('i');
+      sw.style.background = c;
+      legend.appendChild(sw);
+    }
+    const highLabel = document.createElement('span');
+    highLabel.textContent = `${misses ? 'Most' : 'Slowest'} (${fmt(hi)})`;
+    legend.appendChild(highLabel);
+    if (misses && entries.some((x) => x.value === 0)) {
+      const zero = document.createElement('span');
+      zero.className = 'heat-zero-key';
+      zero.textContent = 'Outlined: never missed';
+      legend.appendChild(zero);
+    }
+  }
+
+  const list = $('heatWorst');
+  list.innerHTML = '';
+  const worst = worstPlaces(heat, heatMetric);
+  for (const { key, h, value } of worst) {
+    const { where, note } = placeName(key);
+    const li = document.createElement('li');
+    li.textContent = misses
+      ? `${where} (${note}): missed ${value} of ${h.asked} time${h.asked === 1 ? '' : 's'}`
+      : `${where} (${note}): ${seconds(value)} on average, ${h.found} find${h.found === 1 ? '' : 's'}`;
+    list.appendChild(li);
+  }
+  if (!worst.length) {
+    const li = document.createElement('li');
+    li.className = 'hint';
+    li.textContent = entries.length ? 'Nothing missed yet.' : 'Play a few notes and your weak spots will show here.';
+    list.appendChild(li);
+  }
 }
 
 // ---------- settings ----------
@@ -248,6 +346,20 @@ function wire() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && locked) newQuestion();
   });
+  $('heatFold').addEventListener('toggle', renderHeat);
+  $('heatMetric').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-metric]');
+    if (!b) return;
+    heatMetric = b.dataset.metric;
+    save();
+    renderHeat();
+  });
+  $('clearHeat').addEventListener('click', () => {
+    if (!Object.keys(heat).length || !window.confirm('Clear the practice heatmap?')) return;
+    heat = {};
+    save();
+    renderHeat();
+  });
 }
 
 function init() {
@@ -257,6 +369,7 @@ function init() {
   wire();
   newQuestion();
   renderScore();
+  renderHeat();
   engine.preload();
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js').catch(() => {});
 }

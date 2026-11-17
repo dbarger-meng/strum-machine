@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Strum Studio">
-  <link rel="stylesheet" href="styles.css?v=32">
+  <link rel="stylesheet" href="styles.css?v=34">
 </head>
 <body>
 <header class="masthead">
@@ -58,6 +58,30 @@
     <p class="hint">Guitar music is written an octave above how it sounds, so this reads like guitar sheet music and tab books: written middle C is the A string, 3rd fret.</p>
   </section>
 
+  <details class="card fold" id="heatFold">
+    <summary class="card-head">
+      <h2>Practice heatmap</h2>
+      <span id="heatSummary" class="fold-note"></span>
+    </summary>
+    <div class="row shape-opts">
+      <div class="field">
+        <span id="heatMetricLabel">Show</span>
+        <div id="heatMetric" class="segmented" role="radiogroup" aria-labelledby="heatMetricLabel">
+          <button type="button" role="radio" data-metric="misses">Misses</button>
+          <button type="button" role="radio" data-metric="time">Time to find</button>
+        </div>
+      </div>
+    </div>
+    <p id="heatHelp" class="hint"></p>
+    <div class="fb-wrap">
+      <div id="heatNeck" class="fb" role="img" aria-label="Fretboard heatmap"></div>
+    </div>
+    <div id="heatLegend" class="heat-legend" aria-hidden="true"></div>
+    <h3 class="sub">Needs the most work</h3>
+    <ol id="heatWorst" class="heat-worst"></ol>
+    <div class="row"><button id="clearHeat" type="button" class="quiet">Clear the heatmap</button></div>
+  </details>
+
   <details class="card fold" id="trainerSettings">
     <summary class="card-head">
       <h2>Settings</h2>
@@ -94,6 +118,6 @@
   <p>Everything stays on your device. Notation symbols from the Bravura font by Steinberg, used under the <a href="licenses/Bravura-OFL.txt">SIL Open Font License</a>. Guitar recordings from the <a href="https://github.com/gleitz/midi-js-soundfonts">FluidR3 GM soundfont</a> by Frank Wen, used under <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
 </footer>
 
-<script type="module" src="src/trainer.js?v=32"></script>
+<script type="module" src="src/trainer.js?v=34"></script>
 </body>
 </html>

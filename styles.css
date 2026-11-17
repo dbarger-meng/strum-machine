@@ -489,3 +489,13 @@ h3.sub { margin: 16px 0 2px; font: 700 1.05rem var(--slab); }
   .tempo-inputs input[type="range"] { flex: 1 1 70px; min-width: 60px; width: auto; }
   .tempo { flex: 1 1 100%; }
 }
+
+/* ---- fretboard trainer heatmap ---- */
+.mark.heat { box-shadow: 0 0 0 2px var(--panel); }
+.mark.heat-zero { background: transparent; color: var(--ink-soft); box-shadow: inset 0 0 0 2px var(--ink-soft); }
+.heat-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0 4px; font-size: 0.85rem; color: var(--ink-soft); }
+.heat-legend i { display: inline-block; width: 26px; height: 14px; border-radius: 3px; }
+.heat-legend span { margin: 0 4px; }
+.heat-zero-key { padding-left: 10px; }
+.heat-worst { margin: 6px 0 12px; padding-left: 1.4em; font-size: 0.92rem; }
+.heat-worst li { margin: 2px 0; }
