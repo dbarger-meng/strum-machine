@@ -1,10 +1,10 @@
 // Scale shapes page: a scale across the whole neck or one playing position at a time.
 
-import { AudioEngine } from './audio.js?v=35';
-import { renderNeck, playNotes } from './neck.js?v=35';
+import { AudioEngine } from './audio.js?v=36';
+import { renderNeck, playNotes } from './neck.js?v=36';
 import {
   ROOTS, SCALES, scaleNames, scaleNotes, scalePositions, pretty,
-} from './shapes.js?v=35';
+} from './shapes.js?v=36';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.scales';
