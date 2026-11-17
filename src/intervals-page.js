@@ -1,12 +1,12 @@
 // Interval trainer page: "find the 5th above this note" and "name the interval between two notes".
 
-import { AudioEngine } from './audio.js?v=35';
-import { renderNeck } from './neck.js?v=35';
-import { positionsFor, positionKey } from './fretboard.js?v=35';
-import { pretty } from './shapes.js?v=35';
+import { AudioEngine } from './audio.js?v=36';
+import { renderNeck } from './neck.js?v=36';
+import { positionsFor, positionKey } from './fretboard.js?v=36';
+import { pretty } from './shapes.js?v=36';
 import {
   INTERVAL_SETS, intervalBySemis, nameOf, spellUpper, spellPair, findQuestion, nameQuestion,
-} from './intervals.js?v=35';
+} from './intervals.js?v=36';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.intervals';
@@ -48,7 +48,7 @@ function play(midis, { together = false } = {}) {
   if (!settings.sound) return;
   const ctx = engine.ensure();
   const t = ctx.currentTime + 0.02;
-  midis.forEach((m, i) => engine.playPluck(m, t + (together ? i * 0.02 : i * 0.55), { vel: 0.55, dur: 1.2, release: 0.2, bright: 0.85 }));
+  midis.forEach((m, i) => engine.playPluck(m, t + (together ? i * 0.02 : i * 0.55), { vel: 0.85, dur: 1.2, release: 0.2, bright: 0.85 }));
 }
 function hear() {
   if (!q) return;

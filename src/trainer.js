@@ -1,15 +1,15 @@
 // Fretboard trainer page: draw a note on a treble staff, let the player tap it on the neck.
 
-import { AudioEngine } from './audio.js?v=35';
-import { GLYPHS } from './notation-glyphs.js?v=35';
+import { AudioEngine } from './audio.js?v=36';
+import { GLYPHS } from './notation-glyphs.js?v=36';
 import {
   STRINGS, positionsFor, spell, ledgerLines, nextQuestion, answersFor, noteLabel, judgeTap, positionKey, hasInlay,
-} from './fretboard.js?v=35';
+} from './fretboard.js?v=36';
 
-import { renderNeck } from './neck.js?v=35';
+import { renderNeck } from './neck.js?v=36';
 import {
   recordQuestion, heatValue, heatBin, worstPlaces, HEAT_COLOURS, HEAT_INK,
-} from './heatmap.js?v=35';
+} from './heatmap.js?v=36';
 
 const $ = (id) => document.getElementById(id);
 const STORE = 'strumstudio.fretboard';
@@ -146,12 +146,8 @@ const allOf = (n) => (n === 2 ? 'both' : `all ${n}`);
 
 function play(midi) {
   if (!settings.sound) return;
-  engine.ensure();
-  const sound = () => engine.playPluck(midi, engine.ctx.currentTime + 0.02, { vel: 0.55, dur: 1.4, release: 0.25, bright: 0.85 });
-  // Until the guitar recordings are ready, wait for them (briefly) rather than play the
-  // harsher synthesized fallback.
-  if (engine.samples || !engine.ready) { sound(); return; }
-  Promise.race([engine.ready, new Promise((r) => { setTimeout(r, 1500); })]).then(sound);
+  const ctx = engine.ensure();
+  engine.playPluck(midi, ctx.currentTime + 0.01, { vel: 0.9, dur: 1.4, release: 0.25, bright: 0.85 });
 }
 
 function finish(gotIt) {

@@ -2,7 +2,7 @@
 // FluidR3 GM soundfont, CC BY 3.0), repitched to each note. Until they have loaded, and for the
 // mandolin, strings are synthesised with Karplus-Strong plucks.
 
-import { midiToFreq } from './music.js?v=35';
+import { midiToFreq } from './music.js?v=36';
 
 // One recording every three semitones, so no note is shifted by more than a semitone and a half.
 export const GUITAR_SAMPLES = ['E2', 'G2', 'Bb2', 'Db3', 'E3', 'G3', 'Bb3', 'Db4', 'E4', 'G4', 'Bb4', 'Db5', 'E5', 'G5', 'Bb5', 'Db6'];
@@ -39,33 +39,23 @@ export class AudioEngine {
   }
 
   /** Start downloading the guitar samples; they are decoded once audio starts. */
-  /**
-   * Download and decode the guitar samples now, before any sound is played, so the first note
-   * is already the recorded guitar. Decoding uses a silent offline context, which browsers
-   * allow before the player has touched the page; the decoded audio plays in any context.
-   * Returns a promise that settles once the samples are ready (or failed to load).
-   */
   preload() {
-    if (this.ready) return this.ready;
+    if (this.sampleData) return;
     this.sampleData = Promise.all(GUITAR_SAMPLES.map(async (name) => {
       const res = await fetch(`samples/guitar/${name}.mp3`);
       if (!res.ok) throw new Error(`Could not load ${name}`);
       return { midi: sampleMidi(name), bytes: await res.arrayBuffer() };
     })).catch(() => null);
-    const Offline = typeof window !== 'undefined' && (window.OfflineAudioContext || window.webkitOfflineAudioContext);
-    if (Offline) this.ready = this.decodeSamples(new Offline(1, 1, 44100));
-    return this.ready;
   }
 
-  async decodeSamples(decoder) {
-    if (this.samples) return;
-    if (!this.sampleData) this.preload();
+  async decodeSamples() {
+    this.preload();
     const raw = await this.sampleData;
-    if (!raw || this.samples) return;
+    if (!raw) return;
     const decoded = await Promise.all(raw.map(({ midi, bytes }) => new Promise((resolve, reject) => {
-      decoder.decodeAudioData(bytes.slice(0), resolve, reject);
+      this.ctx.decodeAudioData(bytes.slice(0), resolve, reject);
     }).then((buf) => ({ midi, buf, offset: trimAndNormalise(buf) })))).catch(() => null);
-    if (decoded && !this.samples) this.samples = decoded.sort((a, b) => a.midi - b.midi);
+    if (decoded) this.samples = decoded.sort((a, b) => a.midi - b.midi);
   }
 
   ensure() {
@@ -89,16 +79,7 @@ export class AudioEngine {
     comp.attack.value = 0.004;
     comp.release.value = 0.2;
     this.master.connect(comp);
-    // A safety limiter at the very end, so notes that pile up can never go past full scale and
-    // distort. Normal playing peaks well below its threshold, so it only acts on overloads.
-    const limiter = ctx.createDynamicsCompressor();
-    limiter.threshold.value = -2;
-    limiter.knee.value = 0;
-    limiter.ratio.value = 20;
-    limiter.attack.value = 0.001;
-    limiter.release.value = 0.1;
-    comp.connect(limiter);
-    limiter.connect(ctx.destination);
+    comp.connect(ctx.destination);
     // A little room: a short synthetic reverb shared by the instruments (not the click).
     const reverb = ctx.createConvolver();
     reverb.buffer = roomImpulse(ctx, 1.3);
@@ -114,8 +95,7 @@ export class AudioEngine {
       if (k !== 'click') g.connect(reverb);
       this.buses[k] = g;
     }
-    // Samples decoded early by preload() are reused; otherwise decode them with this context.
-    this.ready = this.samples ? Promise.resolve() : (this.ready || this.decodeSamples(ctx)).then(() => this.decodeSamples(ctx));
+    this.ready = this.decodeSamples();
     return this.ready;
   }
 
