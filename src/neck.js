@@ -1,10 +1,10 @@
 // Draw a guitar neck with labelled dots, for the triad and scale pages.
 // Uses the same .fb grid styles as the fretboard trainer.
 
-import { STRINGS, hasInlay } from './fretboard.js?v=32';
+import { STRINGS, hasInlay } from './fretboard.js?v=34';
 
 /**
- * marks: [{ string, fret, label, cls }] where cls is a space-separated list of mark classes
+ * marks: [{ string, fret, label, cls, bg?, fg?, title? }] where cls is a space-separated list of mark classes
  * (root, t1, t2, other, faint, start, good, bad, ans). onTap(mark) makes marked positions
  * buttons; with tapAll, every position is a button and onTap gets { string, fret } plus any mark.
  */
@@ -32,8 +32,11 @@ export function renderNeck(el, { maxFret = 15, marks = [], onTap = null, tapAll 
         const dot = document.createElement('b');
         dot.className = `mark ${m.cls || 'other'}`;
         dot.textContent = m.label;
+        if (m.bg) dot.style.background = m.bg;
+        if (m.fg) dot.style.color = m.fg;
         c.appendChild(dot);
-        c.setAttribute('aria-label', `${st.name} string, ${fret === 0 ? 'open' : `fret ${fret}`}: ${m.label}`);
+        c.setAttribute('aria-label', `${st.name} string, ${fret === 0 ? 'open' : `fret ${fret}`}: ${m.title || m.label}`);
+        if (m.title) c.title = m.title;
       }
       el.appendChild(c);
     }
